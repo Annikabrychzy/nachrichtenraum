@@ -3,38 +3,183 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#07111f">
-  <title>Nachrichtenraum VR</title>
+  <meta name="theme-color" content="#010604">
+  <title>Nachrichtenraum</title>
   <script src="https://aframe.io/releases/1.6.0/aframe.min.js"></script>
   <style>
-    :root { color-scheme: dark; font-family: Inter, system-ui, sans-serif; }
-    body { margin: 0; background: #07111f; color: #eef5ff; }
-    #hud { position: fixed; z-index: 3; inset: 0 auto auto 0; width: min(390px, calc(100vw - 32px)); margin: 16px; padding: 18px; border: 1px solid #63c7ff55; border-radius: 18px; background: #07111fe8; box-shadow: 0 12px 45px #0008; backdrop-filter: blur(12px); }
-    h1 { margin: 0; font-size: 1.25rem; } p { margin: 8px 0 14px; color: #bbd4ed; line-height: 1.45; }
-    form { display: flex; gap: 8px; } input { min-width: 0; flex: 1; padding: 11px 12px; border: 1px solid #4b86b8; border-radius: 10px; background: #0d2035; color: inherit; }
-    button { border: 0; border-radius: 10px; padding: 11px 14px; background: #38bdf8; color: #02121d; font-weight: 800; cursor: pointer; }
-    #hint { margin: 11px 0 0; font-size: .78rem; color: #8aa8c7; } @media (max-width: 600px) { #hud { width: auto; right: 0; } }
+    :root { color-scheme: dark; font-family: Arial, Helvetica, sans-serif; }
+    body { margin: 0; overflow: hidden; background: #010604; color: #effff8; }
+    #landing { position: fixed; z-index: 5; inset: 0; pointer-events: none; display: grid; place-items: center; background: radial-gradient(ellipse at center, #0c1d14aa 0%, #01060422 36%, #010604cc 100%); }
+    #landing h1 { margin: 0 0 18px; font-weight: 400; letter-spacing: .14em; font-size: clamp(2rem, 5vw, 4.8rem); text-shadow: 0 0 25px #abffe455; }
+    #landing .center { text-align: center; pointer-events: auto; }
+    #landing button { border: 1px solid #caffea; border-radius: 0; padding: 14px 54px; color: #07140e; background: #eafff5; letter-spacing: .16em; font-weight: bold; cursor: pointer; font-size: 1rem; }
+    .corner { position: fixed; z-index: 6; font-size: 10px; letter-spacing: .16em; color: #caffea99; pointer-events: none; }
+    #archive { top: 22px; right: 24px; text-align: right; } #signature { bottom: 20px; right: 24px; } #space { bottom: 20px; left: 24px; }
+    #status { position: fixed; z-index: 4; left: 18px; top: 18px; max-width: 260px; font-size: 12px; line-height: 1.5; letter-spacing: .04em; color: #c8ffe9; opacity: 0; transition: opacity .8s; pointer-events: none; }
+    #status.visible { opacity: .8; }
+    .quiet { font-size: 11px; color: #b9dbc9; margin-top: 18px; max-width: 300px; line-height: 1.5; }
   </style>
 </head>
 <body>
-  <section id="hud" aria-label="Nachrichten schreiben">
-    <h1>Nachrichtenraum VR</h1>
-    <p>Willkommen im gemeinsamen Raum. Schreibe eine Nachricht oder setze die VR-Brille auf und wähle <em>Enter VR</em>.</p>
-    <form id="message-form"><input id="message-input" maxlength="72" placeholder="Deine Nachricht …" aria-label="Deine Nachricht"><button>Senden</button></form>
-    <p id="hint">Desktop: Maus ziehen zum Umschauen. VR: mit dem Headset betreten.</p>
-  </section>
-  <a-scene background="color: #07111f" vr-mode-ui="enabled: true" renderer="colorManagement: true">
-    <a-assets><a-mixin id="panel" geometry="primitive: plane; width: 3.7; height: 1.05" material="color: #102b45; metalness: .22; roughness: .4" text="align: center; color: #e7f5ff; width: 3.25; wrapCount: 30; baseline: center"></a-mixin></a-assets>
-    <a-entity position="0 1.6 4"><a-camera look-controls wasd-controls="acceleration: 24"></a-camera></a-entity>
-    <a-light type="ambient" color="#87bce8" intensity="0.5"></a-light><a-light type="point" color="#38bdf8" intensity="2" distance="12" position="0 4 0"></a-light><a-light type="point" color="#a855f7" intensity="1.5" distance="10" position="-5 2 -3"></a-light>
-    <a-sky color="#07111f"></a-sky><a-plane rotation="-90 0 0" width="30" height="30" color="#0a1b2d" material="metalness:.35; roughness:.65"></a-plane><a-cylinder position="0 0.05 0" radius="3.5" height=".1" color="#0d2a45" material="emissive:#06355e; emissiveIntensity:.55"></a-cylinder><a-torus position="0 3.8 0" rotation="90 0 0" radius="2.2" radius-tubular=".04" color="#38bdf8" material="emissive:#0ea5e9; emissiveIntensity:1"></a-torus>
-    <a-entity position="0 2.8 -3.3"><a-text value="NACHRICHTENRAUM" align="center" width="7" color="#dff6ff"></a-text><a-text value="Verbinde dich. Teile Gedanken. Sei dabei." position="0 -.43 0" align="center" width="4" color="#7dd3fc"></a-text></a-entity>
-    <a-entity id="messages"><a-entity mixin="panel" position="-2.2 1.8 -2.2" rotation="0 42 0" text="value: Hallo! Schön, dass du da bist.;"></a-entity><a-entity mixin="panel" position="2.2 2 -2.2" rotation="0 -42 0" text="value: Dieser Raum funktioniert auch in VR.;"></a-entity><a-entity mixin="panel" position="0 1.35 -4.3" text="value: Schreibe oben deine erste Nachricht.;"></a-entity></a-entity>
+  <main id="landing">
+    <div class="center">
+      <h1>NACHRICHTENRAUM</h1>
+      <button id="start-button">STARTEN</button>
+      <p class="quiet">Setze dein Headset auf, schaue dich um und nutze Controller oder Maus.</p>
+    </div>
+  </main>
+  <span id="archive" class="corner">THEMEN · JUNI 2026<br>ARCHIV · NICHT AKTUELL</span>
+  <span id="space" class="corner">DIGITALER RAUM</span>
+  <span id="signature" class="corner">ANNIKABRYCHZY</span>
+  <div id="status"></div>
+
+  <a-scene id="scene" background="color: #010604" vr-mode-ui="enabled: true" renderer="colorManagement: true; physicallyCorrectLights: true">
+    <a-entity id="rig" position="0 0 0">
+      <a-camera id="camera" position="0 1.65 0" look-controls wasd-controls="acceleration: 20">
+        <a-entity cursor="rayOrigin: entity; fuse: false" raycaster="objects: .clickable" position="0 0 -1" geometry="primitive: ring; radiusInner: .008; radiusOuter: .014" material="color: #dfffee; shader: flat"></a-entity>
+      </a-camera>
+      <a-entity laser-controls="hand: left" raycaster="objects: .clickable; far: 18" line="color: #b6ffe2; opacity: .55"></a-entity>
+      <a-entity laser-controls="hand: right" raycaster="objects: .clickable; far: 18" line="color: #b6ffe2; opacity: .55"></a-entity>
+    </a-entity>
+    <a-light type="ambient" color="#295445" intensity=".35"></a-light>
+    <a-light id="pulse-light" type="point" color="#8dffd1" intensity="0" distance="8" position="0 3 0"></a-light>
+    <a-sky color="#010604"></a-sky>
+    <a-plane rotation="-90 0 0" width="80" height="80" color="#030906" material="metalness:.4; roughness:.82"></a-plane>
+    <a-circle rotation="-90 0 0" radius="7" color="#06110b" material="emissive:#06341f; emissiveIntensity:.18"></a-circle>
+    <a-torus position="0 5.5 0" rotation="90 0 0" radius="5.8" radius-tubular=".018" color="#68ffba" material="emissive:#00bb65; emissiveIntensity:1"></a-torus>
+    <a-entity id="room-label" position="0 3.3 -6">
+      <a-text value="NACHRICHTENRAUM" align="center" width="7" color="#caffea" letter-spacing=".12"></a-text>
+      <a-text value="Juni 2026 · Archiv" position="0 -.35 0" align="center" width="3.2" color="#79b998"></a-text>
+    </a-entity>
+    <a-entity id="cards"></a-entity>
+    <a-entity id="story"></a-entity>
+    <a-entity id="vr-start" class="clickable" position="0 1.7 -3.2">
+      <a-plane width="3.8" height="1.6" color="#eafff5" material="emissive:#75e6ac; emissiveIntensity:.32"></a-plane>
+      <a-text value="NACHRICHTENRAUM" position="0 .38 .02" align="center" width="3.2" color="#06120c"></a-text>
+      <a-text value="STARTEN" position="0 -.32 .02" align="center" width="2.4" color="#06120c"></a-text>
+    </a-entity>
   </a-scene>
+
   <script>
-    const form = document.querySelector('#message-form'), input = document.querySelector('#message-input'), messages = document.querySelector('#messages');
-    const positions = ['-2.2 1.8 -2.2', '2.2 2 -2.2', '0 1.35 -4.3', '-3 1.3 -4.3', '3 1.35 -4.3', '0 2.65 -4.3']; let nextPosition = 0;
-    form.addEventListener('submit', event => { event.preventDefault(); const value = input.value.trim(); if (!value) return; const panel = document.createElement('a-entity'); panel.setAttribute('mixin', 'panel'); panel.setAttribute('position', positions[nextPosition % positions.length]); panel.setAttribute('rotation', nextPosition % 2 ? '0 -28 0' : '0 28 0'); panel.setAttribute('text', 'value: ' + value + ';'); messages.append(panel); nextPosition++; input.value = ''; input.focus(); });
+    const cards = document.querySelector('#cards');
+    const story = document.querySelector('#story');
+    const landing = document.querySelector('#landing');
+    const status = document.querySelector('#status');
+    const vrStart = document.querySelector('#vr-start');
+    const light = document.querySelector('#pulse-light');
+    let activeTimers = [], stage = 0, social = false, started = false;
+
+    const archiveNews = [
+      ['taz', 'Koalition berät über neue Wege in der Klimapolitik'],
+      ['Tagesschau', 'Haushaltsdebatte prägt die politische Woche'],
+      ['Wandern News', 'Bergwege zwischen Schutz und Tourismus'],
+      ['taz', 'Städte diskutieren über bezahlbaren Wohnraum'],
+      ['Tagesschau', 'Europa sucht nach gemeinsamen Antworten'],
+      ['Wandern News', 'Sommerwege: Natur erleben, Räume schützen'],
+      ['taz', 'Junge Stimmen fordern mehr politische Beteiligung'],
+      ['Tagesschau', 'Neue Zahlen lösen viele Fragen aus']
+    ];
+    const socialNews = [
+      ['SOCIAL', 'KI-Video: Ein Hund spricht über deinen Feed'],
+      ['REEL', 'Noch ein Clip. Noch ein Swipe. Noch ein Impuls.'],
+      ['VIDEO', 'Trend: Was du heute unbedingt sehen musst'],
+      ['STREAM', 'Du bist nicht fertig. Es gibt noch mehr.'],
+      ['SOCIAL', 'Ein perfekter Moment, endlos wiederholt'],
+      ['REEL', 'Empfohlen für dich — und noch einmal für dich']
+    ];
+
+    function pulse() {
+      light.setAttribute('intensity', '2.4');
+      setTimeout(() => light.setAttribute('intensity', '.15'), 160);
+    }
+    function randomPosition() {
+      const angle = Math.random() * Math.PI * 2;
+      const distance = 3.5 + Math.random() * 6;
+      const y = 1.15 + Math.random() * 3.8;
+      return { x: Math.sin(angle) * distance, y, z: Math.cos(angle) * distance };
+    }
+    function addText(parent, value, position, width, color, align='left') {
+      const text = document.createElement('a-text');
+      text.setAttribute('value', value);
+      text.setAttribute('position', position);
+      text.setAttribute('width', width);
+      text.setAttribute('color', color);
+      text.setAttribute('align', align);
+      text.setAttribute('wrap-count', 28);
+      parent.appendChild(text);
+      return text;
+    }
+    function addCard(multiplier = 1) {
+      const feed = social ? socialNews : archiveNews;
+      const item = feed[Math.floor(Math.random() * feed.length)];
+      const p = randomPosition();
+      const entity = document.createElement('a-entity');
+      entity.setAttribute('position', p);
+      entity.setAttribute('rotation', `0 ${Math.random() * 360} 0`);
+      const plane = document.createElement('a-plane');
+      plane.setAttribute('width', '2.8'); plane.setAttribute('height', '1.05');
+      plane.setAttribute('color', '#f4fff9');
+      plane.setAttribute('material', 'emissive: #b1ffd5; emissiveIntensity: .35; metalness:.1; roughness:.55');
+      entity.appendChild(plane);
+      addText(entity, item[0], '-1.18 .3 .025', 1.1, '#153b28');
+      addText(entity, item[1], '-1.18 .03 .025', 1.28, '#06130c');
+      const close = document.createElement('a-entity');
+      close.classList.add('clickable');
+      close.setAttribute('position', '1.16 .34 .035');
+      const closePlane = document.createElement('a-plane');
+      closePlane.setAttribute('width', '.3'); closePlane.setAttribute('height', '.3'); closePlane.setAttribute('color', '#0b2115');
+      close.appendChild(closePlane); addText(close, '×', '0 -.07 .02', .48, '#eafff5', 'center');
+      close.addEventListener('click', event => {
+        event.stopPropagation(); entity.remove();
+        if (started) { setTimeout(() => addCard(multiplier + 1), 100); setTimeout(() => addCard(multiplier + 1), 260); }
+      });
+      const end = { x: p.x * .32, y: p.y + (Math.random() - .5) * 1.5, z: p.z * .32 };
+      entity.setAttribute('animation', `property: position; to: ${end.x} ${end.y} ${end.z}; dur: ${9000 / multiplier + Math.random() * 3000}; easing: linear; loop: false`);
+      cards.appendChild(entity);
+      pulse();
+      setTimeout(() => { if (entity.parentNode && !entity.matches(':hover')) entity.remove(); }, 15000);
+    }
+    function clearCards() { cards.innerHTML = ''; activeTimers.forEach(clearTimeout); activeTimers = []; }
+    function say(text) { status.textContent = text; status.classList.add('visible'); }
+    function hideStatus() { status.classList.remove('visible'); }
+    function scheduleFlood(seconds, every, label) {
+      say(label);
+      const interval = setInterval(() => addCard(stage), every);
+      activeTimers.push(interval);
+      const stop = setTimeout(() => { clearInterval(interval); activeTimers = activeTimers.filter(t => t !== interval); clearCards(); setTimeout(() => showChoice(), 1800); }, seconds * 1000);
+      activeTimers.push(stop);
+    }
+    function button(parent, title, pos, action) {
+      const b = document.createElement('a-entity'); b.classList.add('clickable'); b.setAttribute('position', pos);
+      const plane = document.createElement('a-plane'); plane.setAttribute('width', '2.05'); plane.setAttribute('height', '.58'); plane.setAttribute('color', '#dfffee'); b.appendChild(plane);
+      addText(b, title, '0 -.08 .025', .82, '#06130c', 'center');
+      b.addEventListener('click', action); parent.appendChild(b);
+    }
+    function showChoice() {
+      hideStatus(); story.innerHTML = '';
+      const panel = document.createElement('a-entity'); panel.setAttribute('position', '0 1.75 -4.2');
+      const bg = document.createElement('a-plane'); bg.setAttribute('width', '5.4'); bg.setAttribute('height', '2.3'); bg.setAttribute('color', '#0a1c12'); bg.setAttribute('material', 'emissive:#0e472a; emissiveIntensity:.2'); panel.appendChild(bg);
+      addText(panel, stage < 3 ? 'Möchtest du in diesem Raum bleiben?' : 'Möchtest du bleiben?', '0 .55 .03', 3.1, '#ecfff5', 'center');
+      addText(panel, 'Die Pause ist nur kurz.', '0 .18 .03', 1.55, '#91c9aa', 'center');
+      button(panel, 'BLEIBEN', '-1.18 -.6 .04', () => { panel.remove(); stage++; stage === 2 ? scheduleFlood(10, 520, 'Die Wellen werden dichter.') : scheduleFlood(14, 220, 'Es ist zu viel.'); });
+      button(panel, stage < 3 ? 'NEUEN RAUM' : 'WEGGEHEN', '1.18 -.6 .04', () => { panel.remove(); enterSocialRoom(); });
+      story.appendChild(panel);
+    }
+    function enterSocialRoom() {
+      clearCards(); social = true; stage = 1;
+      document.querySelector('#room-label').setAttribute('visible', false);
+      say('Ein anderer Raum. Andere Reize.');
+      scheduleFlood(10, 950, 'Clips, KI-Bilder, Reels — sie finden dich.');
+    }
+    function startExperience() {
+      if (started) return;
+      started = true; stage = 1; landing.style.display = 'none'; vrStart.setAttribute('visible', false);
+      say('Zuerst ist es ruhig.');
+      const first = setTimeout(() => scheduleFlood(10, 1350, 'Die ersten Nachrichten ziehen vorbei.'), 1200);
+      activeTimers.push(first);
+    }
+    document.querySelector('#start-button').addEventListener('click', startExperience);
+    vrStart.addEventListener('click', startExperience);
   </script>
 </body>
 </html>
