@@ -40,8 +40,8 @@
       <a-camera id="camera" look-controls wasd-controls="acceleration: 18">
         <a-entity cursor="rayOrigin: mouse" raycaster="objects: .click-target" position="0 0 -1" geometry="primitive: ring; radiusInner: .008; radiusOuter: .014" material="color: #e3fbff; shader: flat"></a-entity>
       </a-camera>
-      <a-entity id="left-hand" oculus-touch-controls="hand: left" laser-controls="hand: left" raycaster="objects: .click-target; far: 20" line="color: #bdeeff; opacity: .65"></a-entity>
-      <a-entity id="right-hand" oculus-touch-controls="hand: right" laser-controls="hand: right" raycaster="objects: .click-target; far: 20" line="color: #bdeeff; opacity: .65"></a-entity>
+      <a-entity id="left-hand" oculus-touch-controls="hand: left" laser-controls="hand: left" cursor="rayOrigin: entity; fuse: false" raycaster="objects: .click-target; far: 20" line="color: #bdeeff; opacity: .65"></a-entity>
+      <a-entity id="right-hand" oculus-touch-controls="hand: right" laser-controls="hand: right" cursor="rayOrigin: entity; fuse: false" raycaster="objects: .click-target; far: 20" line="color: #bdeeff; opacity: .65"></a-entity>
     </a-entity>
     <a-light type="ambient" color="#607b91" intensity="0.3"></a-light>
     <a-light type="hemisphere" color="#627c90" ground-color="#101923" intensity="0.32"></a-light>
@@ -112,7 +112,7 @@
   AFRAME.registerComponent('wave-flight', {
     schema: { from: {type: 'vec3'}, to: {type: 'vec3'}, amplitude: {default: 1.8}, frequency: {default: 1}, duration: {default: 4200} },
     init() { this.startedAt = performance.now(); this.side = new THREE.Vector3(-(this.data.to.z - this.data.from.z), 0, this.data.to.x - this.data.from.x).normalize(); },
-    tick(time) { const t = Math.min(1, (time - this.startedAt) / this.data.duration), ease = t * t * (3 - 2 * t); const p = new THREE.Vector3().lerpVectors(this.data.from, this.data.to, ease); const wave = Math.sin(t * Math.PI * this.data.frequency) * this.data.amplitude; p.addScaledVector(this.side, wave); p.y += Math.sin(t * Math.PI * this.data.frequency * 1.4) * this.data.amplitude * .32; this.el.object3D.position.copy(p); }
+    tick(time) { const t = ((time - this.startedAt) % this.data.duration) / this.data.duration, ease = t * t * (3 - 2 * t); const p = new THREE.Vector3().lerpVectors(this.data.from, this.data.to, ease); const wave = Math.sin(t * Math.PI * this.data.frequency) * this.data.amplitude; p.addScaledVector(this.side, wave); p.y += Math.sin(t * Math.PI * this.data.frequency * 1.4) * this.data.amplitude * .32; this.el.object3D.position.copy(p); }
   });
 
   function escapeHTML(s) { const d = document.createElement('div'); d.textContent = s || ''; return d.innerHTML; }
