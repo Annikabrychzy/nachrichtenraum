@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Unendlicher Feed — Nachrichtenraum</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <main id="experience" aria-label="Interaktiver Nachrichtenraum">
+      <header class="hud">
+        <p class="eyebrow">VR-RAUM · PROTOTYP</p>
+        <h1>UNENDLICHER FEED</h1>
+        <p id="phase-label">MORGEN · erste Meldungen</p>
+      </header>
+
+      <section id="news-space" aria-live="polite"></section>
+
+      <aside class="help">
+        <span>Bewege die Maus oder wische, um dich umzusehen.</span>
+        <span>Klicke eine Meldung, um sie zu öffnen.</span>
+      </aside>
+      <p class="counter"><span id="counter">0</span> MELDUNGEN IM RAUM</p>
+
+      <dialog id="news-dialog">
+        <button class="close" id="close-dialog" aria-label="Meldung schließen">×</button>
+        <p class="source" id="dialog-source"></p>
+        <h2 id="dialog-title"></h2>
+        <p id="dialog-text"></p>
+        <p class="note">Eine Meldung schließen schafft keinen Raum.</p>
+      </dialog>
+    </main>
+    <script src="script.js"></script>
+  </body>
+</html>
+
