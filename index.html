@@ -50,12 +50,12 @@
     <a-plane rotation="-90 0 0" width="180" height="180" color="#101923" material="emissive: #09111a; emissiveIntensity: .42; roughness: .98; metalness: .1"></a-plane>
     <a-circle rotation="-90 0 0" radius="8" color="#162431" material="emissive:#0f1d29; emissiveIntensity:.32; transparent:true; opacity:.42"></a-circle>
     <a-entity id="news-grid"></a-entity>
-    <a-entity id="escape-panel" visible="false" face-player>
+    <a-entity id="escape-panel" visible="false" face-player place-in-front>
       <a-plane width="4.7" height="2.15" color="#071016" material="emissive: #112c39; emissiveIntensity: .3"></a-plane>
-      <a-text value="Möchtest du bleiben oder gehen?" position="0 .47 .03" align="center" width="3.2" color="#f1fbff" wrap-count="32"></a-text>
+      <a-text value="Möchtest du den Raum verlassen?" position="0 .47 .03" align="center" width="3.2" color="#f1fbff" wrap-count="32"></a-text>
       <a-text value="Der Nachrichtenstrom wird nicht von allein still." position="0 .06 .03" align="center" width="1.7" color="#9bb9c7" wrap-count="40"></a-text>
-      <a-entity id="leave-room" class="click-target" position="-1.08 -.63 .04"><a-plane width="1.62" height=".48" color="#e5faff"></a-plane><a-text value="JA, GEHEN" position="0 -.08 .02" align="center" width=".72" color="#061017"></a-text></a-entity>
-      <a-entity id="stay-room" class="click-target" position="1.08 -.63 .04"><a-plane width="1.62" height=".48" color="#19333f"></a-plane><a-text value="BLEIBEN" position="0 -.08 .02" align="center" width=".72" color="#e5faff"></a-text></a-entity>
+      <a-entity id="leave-room" class="click-target" position="-1.08 -.63 .04"><a-plane width="1.62" height=".48" color="#e5faff"></a-plane><a-text value="JA" position="0 -.08 .02" align="center" width=".72" color="#061017"></a-text></a-entity>
+      <a-entity id="stay-room" class="click-target" position="1.08 -.63 .04"><a-plane width="1.62" height=".48" color="#19333f"></a-plane><a-text value="NEIN" position="0 -.08 .02" align="center" width=".72" color="#e5faff"></a-text></a-entity>
     </a-entity>
   </a-scene>
 
@@ -108,6 +108,9 @@
   });
   AFRAME.registerComponent('face-player', {
     tick() { const p = camera.object3D.getWorldPosition(new THREE.Vector3()); p.y = this.el.object3D.position.y; this.el.object3D.lookAt(p); }
+  });
+  AFRAME.registerComponent('place-in-front', {
+    tick() { if (!this.el.getAttribute('visible')) return; const p = camera.object3D.getWorldPosition(new THREE.Vector3()); const d = camera.object3D.getWorldDirection(new THREE.Vector3()).normalize(); const target = new THREE.Vector3(p.x + d.x * 3.1, p.y, p.z + d.z * 3.1); this.el.object3D.position.lerp(target, .12); }
   });
   AFRAME.registerComponent('wave-flight', {
     schema: { from: {type: 'vec3'}, to: {type: 'vec3'}, amplitude: {default: 1.8}, frequency: {default: 1}, duration: {default: 4200} },
