@@ -123,16 +123,18 @@
   function spawnNear(origin) { const a = Math.atan2(origin.x, origin.z) + (Math.random() - .5) * .36; const r = 4 + Math.random() * 5; makeCard(randomNews(), {x: Math.sin(a)*r, y: .3 + Math.random()*4.8, z: Math.cos(a)*r}); }
   function initialGrid() { creatingInitial = true; for (let row=0; row<6; row++) for (let col=0; col<20; col++) { const angle = col / 20 * Math.PI * 2; const radius = 5.3 + (row % 2) * .9 + (Math.random()-.5)*.35; makeCard(randomNews(), {x: Math.sin(angle)*radius, y: -1.3 + row * 1.04, z: Math.cos(angle)*radius}); } creatingInitial = false; }
   function updateCount() { countEl.textContent = Math.max(0, cardCount) + ' MELDUNGEN'; }
-  function rhythm() { const elapsed = (Date.now() - startTime) / 1000; let delay;
-    if (elapsed < 45) { phaseEl.textContent = 'MORGEN · erste Meldungen'; delay = 6200; }
-    else if (elapsed < 105) { phaseEl.textContent = 'MITTAG · Verdichtung'; delay = 1600; }
-    else { phaseEl.textContent = 'ABEND · ÜBERFLUTUNG'; delay = 360; }
-    spawnNear({x: Math.sin(Math.random()*6.28)*7, y: 1+Math.random()*3, z: Math.cos(Math.random()*6.28)*7});
+  function rhythm() { const elapsed = (Date.now() - startTime) / 1000; let delay, amount = 1;
+    if (elapsed < 9) { phaseEl.textContent = 'MORGEN · STILLE'; sequenceTimer = setTimeout(rhythm, 900); return; }
+    if (elapsed < 60) { phaseEl.textContent = 'MORGEN · erste Meldungen'; delay = 7000; }
+    else if (elapsed < 120) { phaseEl.textContent = 'MITTAG · Verdichtung'; delay = 1450; }
+    else if (elapsed < 180) { phaseEl.textContent = 'ABEND · ÜBERFLUTUNG'; delay = 420; }
+    else { phaseEl.textContent = 'ABEND · KEIN ENDE'; delay = 230; amount = 2; }
+    for (let i = 0; i < amount; i++) setTimeout(() => spawnNear({x: Math.sin(Math.random()*6.28)*7, y: 1+Math.random()*3, z: Math.cos(Math.random()*6.28)*7}), i * 65);
     sequenceTimer = setTimeout(rhythm, delay);
   }
   async function loadRSS() { const fetched = await Promise.allSettled(FEEDS.map(async feed => { const proxy = 'https://api.allorigins.win/raw?url=' + encodeURIComponent(feed.url); const response = await fetch(proxy, {cache:'no-store'}); if (!response.ok) throw Error('Feed unavailable'); const xml = new DOMParser().parseFromString(await response.text(), 'text/xml'); return [...xml.querySelectorAll('item')].slice(0, 10).map(i => ({source: feed.name, title: i.querySelector('title')?.textContent || '', text: i.querySelector('description')?.textContent.replace(/<[^>]+>/g, '') || ''})); }));
     const live = fetched.filter(x=>x.status==='fulfilled').flatMap(x=>x.value).filter(x=>x.title); if (live.length) news = live; }
-  document.querySelector('#start').addEventListener('click', () => { if (started) return; started = true; startTime = Date.now(); document.querySelector('#overlay').classList.add('hidden'); tone(); initialGrid(); rhythm(); loadRSS(); });
+  document.querySelector('#start').addEventListener('click', () => { if (started) return; started = true; startTime = Date.now(); document.querySelector('#overlay').classList.add('hidden'); tone(); rhythm(); loadRSS(); });
   </script>
 </body>
 </html>
