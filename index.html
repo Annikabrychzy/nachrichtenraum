@@ -175,7 +175,7 @@
     escapePanel.setAttribute('visible', true);
   }
   document.querySelector('#leave-room').addEventListener('click', () => {
-    location.href = 'social.html';
+    location.href = 'exit-destination.html';
   });
   document.querySelector('#stay-room').addEventListener('click', () => { escapePanel.setAttribute('visible', false); rhythm(); });
   async function loadRSS() { const fetched = await Promise.allSettled(FEEDS.map(async feed => { const proxy = 'https://api.allorigins.win/raw?url=' + encodeURIComponent(feed.url); const response = await fetch(proxy, {cache:'no-store'}); if (!response.ok) throw Error('Feed unavailable'); const xml = new DOMParser().parseFromString(await response.text(), 'text/xml'); return [...xml.querySelectorAll('item')].slice(0, 10).map(i => ({source: feed.name, title: i.querySelector('title')?.textContent || '', text: i.querySelector('description')?.textContent.replace(/<[^>]+>/g, '') || ''})); }));
