@@ -52,7 +52,7 @@
     <a-entity id="news-grid"></a-entity>
     <a-entity id="escape-panel" visible="false" face-player>
       <a-plane width="4.7" height="2.15" color="#071016" material="emissive: #112c39; emissiveIntensity: .3"></a-plane>
-      <a-text value="Möchtest du diesen Raum verlassen?" position="0 .47 .03" align="center" width="3.2" color="#f1fbff" wrap-count="32"></a-text>
+      <a-text value="Möchtest du bleiben oder gehen?" position="0 .47 .03" align="center" width="3.2" color="#f1fbff" wrap-count="32"></a-text>
       <a-text value="Der Nachrichtenstrom wird nicht von allein still." position="0 .06 .03" align="center" width="1.7" color="#9bb9c7" wrap-count="40"></a-text>
       <a-entity id="leave-room" class="click-target" position="-1.08 -.63 .04"><a-plane width="1.62" height=".48" color="#e5faff"></a-plane><a-text value="JA, GEHEN" position="0 -.08 .02" align="center" width=".72" color="#061017"></a-text></a-entity>
       <a-entity id="stay-room" class="click-target" position="1.08 -.63 .04"><a-plane width="1.62" height=".48" color="#19333f"></a-plane><a-text value="BLEIBEN" position="0 -.08 .02" align="center" width=".72" color="#e5faff"></a-text></a-entity>
@@ -112,7 +112,7 @@
   AFRAME.registerComponent('wave-flight', {
     schema: { from: {type: 'vec3'}, to: {type: 'vec3'}, amplitude: {default: 1.8}, frequency: {default: 1}, duration: {default: 4200} },
     init() { this.startedAt = performance.now(); this.side = new THREE.Vector3(-(this.data.to.z - this.data.from.z), 0, this.data.to.x - this.data.from.x).normalize(); },
-    tick(time) { const t = ((time - this.startedAt) % this.data.duration) / this.data.duration, ease = t * t * (3 - 2 * t); const p = new THREE.Vector3().lerpVectors(this.data.from, this.data.to, ease); const wave = Math.sin(t * Math.PI * this.data.frequency) * this.data.amplitude; p.addScaledVector(this.side, wave); p.y += Math.sin(t * Math.PI * this.data.frequency * 1.4) * this.data.amplitude * .32; this.el.object3D.position.copy(p); }
+    tick(time) { const t = Math.min(1, (time - this.startedAt) / this.data.duration), ease = t * t * (3 - 2 * t); const p = new THREE.Vector3().lerpVectors(this.data.from, this.data.to, ease); const wave = Math.sin(t * Math.PI * this.data.frequency) * this.data.amplitude; p.addScaledVector(this.side, wave); p.y += Math.sin(t * Math.PI * this.data.frequency * 1.4) * this.data.amplitude * .32; this.el.object3D.position.copy(p); if (t === 1 && !this.finished) { this.finished = true; this.el.emit('wave-ended'); } }
   });
 
   function escapeHTML(s) { const d = document.createElement('div'); d.textContent = s || ''; return d.innerHTML; }
@@ -126,18 +126,17 @@
   function makeCard(item, pos, flight = null) {
     const entity = document.createElement('a-entity');
     entity.setAttribute('position', pos); entity.setAttribute('face-player', ''); entity.setAttribute('scale', '0.01 0.01 0.01');
-    const panel = document.createElement('a-plane'); panel.setAttribute('width', '1.72'); panel.setAttribute('height', '1.12'); panel.setAttribute('color', '#eaf8ff'); panel.setAttribute('material', 'emissive: #badff0; emissiveIntensity: .42; roughness: .65'); entity.appendChild(panel);
+    const panel = document.createElement('a-plane'); panel.classList.add('click-target'); panel.setAttribute('width', '1.72'); panel.setAttribute('height', '1.12'); panel.setAttribute('color', '#eaf8ff'); panel.setAttribute('material', 'emissive: #badff0; emissiveIntensity: .42; roughness: .65'); entity.appendChild(panel);
     const stripe = document.createElement('a-plane'); stripe.setAttribute('width', '.045'); stripe.setAttribute('height', '1.12'); stripe.setAttribute('position', '-.835 0 .012'); stripe.setAttribute('color', sourceColor(item.source)); entity.appendChild(stripe);
     function label(value, position, width, color, align='left') { const el = document.createElement('a-text'); el.setAttribute('value', value); el.setAttribute('position', position); el.setAttribute('width', width); el.setAttribute('color', color); el.setAttribute('align', align); el.setAttribute('wrap-count', 28); entity.appendChild(el); }
     label(item.source.toUpperCase(), '-.68 .38 .025', .52, '#375160');
     label(short(item.title, 90), '-.68 .12 .025', .92, '#07131b');
     label(short(item.text, 120), '-.68 -.35 .025', .62, '#436371');
     const close = document.createElement('a-entity'); close.classList.add('click-target'); close.setAttribute('position', '.65 .38 .04');
-    const closeBg = document.createElement('a-plane'); closeBg.setAttribute('width', '.25'); closeBg.setAttribute('height', '.25'); closeBg.setAttribute('color', '#0b1b24'); close.appendChild(closeBg);
+    const closeBg = document.createElement('a-plane'); closeBg.classList.add('click-target'); closeBg.setAttribute('width', '.25'); closeBg.setAttribute('height', '.25'); closeBg.setAttribute('color', '#0b1b24'); close.appendChild(closeBg);
     const x = document.createElement('a-text'); x.setAttribute('value', '×'); x.setAttribute('position', '0 -.075 .015'); x.setAttribute('align', 'center'); x.setAttribute('width', '.44'); x.setAttribute('color', '#ffffff'); close.appendChild(x);
     close.addEventListener('click', ev => { ev.stopPropagation(); entity.remove(); cardCount--; updateCount(); for (let i=0; i<3; i++) setTimeout(() => spawnNear(pos), 90 + i * 105); }); entity.appendChild(close);
-    entity.classList.add('click-target');
-    entity.addEventListener('click', () => {
+    panel.addEventListener('click', () => {
       if (!entity.parentNode) return;
       entity.removeAttribute('wave-flight'); entity.removeAttribute('animation__flow');
       const player = camera.object3D.getWorldPosition(new THREE.Vector3()); const direction = camera.object3D.getWorldDirection(new THREE.Vector3()).normalize();
@@ -149,6 +148,7 @@
     grid.appendChild(entity); cardCount++; updateCount(); flash(pos); if (started && !creatingInitial) tone();
     if (flight) entity.setAttribute('wave-flight', flight);
     else entity.setAttribute('animation__flow', `property: position; to: ${-pos.x * 1.35} ${pos.y + (Math.random() - .5) * 1.2} ${-pos.z * 1.35}; dur: ${2600 + Math.random() * 2600}; easing: linear`);
+    entity.addEventListener('wave-ended', () => { if (entity.parentNode) { entity.remove(); cardCount--; updateCount(); } });
     return entity;
   }
   function spawnWave() { const mode = waveCounter++ % 3, angle = mode * Math.PI / 3 + (Math.random() - .5) * .22, radius = 11 + Math.random() * 3; const from = {x: Math.sin(angle) * radius, y: .4 + Math.random() * 4.4, z: Math.cos(angle) * radius}; const to = {x: -from.x * 1.2, y: from.y + (Math.random() - .5) * 1.4, z: -from.z * 1.2}; makeCard(randomNews(), from, {from, to, amplitude: 1.1 + Math.random() * 1.7, frequency: mode + 1, duration: 3000 + Math.random() * 2600}); }
