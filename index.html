@@ -135,15 +135,14 @@
     const close = document.createElement('a-entity'); close.classList.add('click-target'); close.setAttribute('position', '.65 .38 .04');
     const closeBg = document.createElement('a-plane'); closeBg.classList.add('click-target'); closeBg.setAttribute('width', '.25'); closeBg.setAttribute('height', '.25'); closeBg.setAttribute('color', '#0b1b24'); close.appendChild(closeBg);
     const x = document.createElement('a-text'); x.setAttribute('value', '×'); x.setAttribute('position', '0 -.075 .015'); x.setAttribute('align', 'center'); x.setAttribute('width', '.44'); x.setAttribute('color', '#ffffff'); close.appendChild(x);
-    close.addEventListener('click', ev => { ev.stopPropagation(); entity.remove(); cardCount--; updateCount(); for (let i=0; i<3; i++) setTimeout(() => spawnNear(pos), 90 + i * 105); }); entity.appendChild(close);
-    panel.addEventListener('click', () => {
+    const dismiss = ev => {
+      if (ev) ev.stopPropagation();
       if (!entity.parentNode) return;
-      entity.removeAttribute('wave-flight'); entity.removeAttribute('animation__flow');
-      const player = camera.object3D.getWorldPosition(new THREE.Vector3()); const direction = camera.object3D.getWorldDirection(new THREE.Vector3()).normalize();
-      const target = {x: player.x + direction.x * 1.45, y: player.y, z: player.z + direction.z * 1.45};
-      entity.setAttribute('animation__pull', `property: position; to: ${target.x} ${target.y} ${target.z}; dur: 420; easing: easeOutQuad`);
-      entity.setAttribute('scale', '1.35 1.35 1.35');
-    });
+      entity.remove(); cardCount--; updateCount();
+      for (let i=0; i<3; i++) setTimeout(spawnWave, 90 + i * 105);
+    };
+    close.addEventListener('click', dismiss); entity.appendChild(close);
+    panel.addEventListener('click', dismiss);
     entity.setAttribute('animation__spawn', 'property: scale; to: 1 1 1; dur: 260; easing: easeOutBack');
     grid.appendChild(entity); cardCount++; updateCount(); flash(pos); if (started && !creatingInitial) tone();
     if (flight) entity.setAttribute('wave-flight', flight);
