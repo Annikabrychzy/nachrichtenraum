@@ -15,9 +15,10 @@
     h1 { margin: 0 0 9px; letter-spacing: .17em; font-size: clamp(25px, 5vw, 44px); font-weight: 500; }
     p { line-height: 1.55; color: #b8cbd5; }
     button { padding: 14px 26px; border: 1px solid #e5faff; background: #e5faff; color: #061017; font-weight: 700; letter-spacing: .12em; cursor: pointer; }
-    #hud { position: fixed; z-index: 8; top: 21px; left: 23px; pointer-events: none; font-size: 10px; letter-spacing: .15em; color: #c2e2ef; text-shadow: 0 1px 5px #000; }
-    #hud strong { display: block; margin: 5px 0; color: white; font-size: 18px; font-weight: 500; }
-    #hud small { color: #8ea5b1; }
+    .label { position: fixed; z-index: 8; pointer-events: none; font-size: 10px; letter-spacing: .13em; color: #b9d0db; text-shadow: 0 1px 5px #000; }
+    #hud { top: 21px; left: 23px; } #hud strong { display: block; margin-top: 5px; color: white; font-size: 16px; font-weight: 500; }
+    #archive { top: 21px; right: 23px; max-width: 265px; text-align: right; color: #8fa7b4; line-height: 1.55; }
+    #space { bottom: 21px; left: 23px; line-height: 1.7; } #signature { bottom: 21px; right: 23px; text-align: right; }
   </style>
 </head>
 <body>
@@ -29,7 +30,10 @@
       <p><small>WebXR / Meta Quest: Im Browser anschließend das VR-Symbol wählen.</small></p>
     </div>
   </section>
-  <div id="hud">INFORMATIONSRAUM<strong id="phase">MORGEN · erste Meldungen</strong><small id="count">0 MELDUNGEN</small></div>
+  <div id="hud" class="label">INFORMATIONSRAUM<strong id="phase">LANGSAME ÜBERFLUTUNG</strong></div>
+  <div id="archive" class="label">ARCHIVIERTE RSS-POLITIKMELDUNGEN<br>NUR ZUM KÜNSTLERISCHEN ZWECK</div>
+  <div id="space" class="label">DIGITALER RAUM<br>AUF DAS X KLICKEN, UM MELDUNGEN ZU SCHLIESSEN</div>
+  <div id="signature" class="label">ANNIKABRYCHZY</div>
 
   <a-scene id="scene" renderer="antialias: true; colorManagement: true" background="color: #071019" vr-mode-ui="enabled: true" loading-screen="enabled: false">
     <a-entity id="rig" position="0 1.65 0" smooth-locomotion>
@@ -79,7 +83,7 @@
   const phaseEl = document.querySelector('#phase');
   const countEl = document.querySelector('#count');
   const escapePanel = document.querySelector('#escape-panel');
-  let news = [...FALLBACK_NEWS], started = false, startTime = 0, cardCount = 0, sequenceTimer, creatingInitial = false, waveCounter = 0, audioContext;
+  let news = [...FALLBACK_NEWS], started = false, startTime = 0, cardCount = 0, sequenceTimer, creatingInitial = false, waveCounter = 0, audioContext, escapeShown = false;
 
   AFRAME.registerComponent('smooth-locomotion', {
     schema: { speed: {default: 2.1} },
@@ -132,6 +136,15 @@
     const closeBg = document.createElement('a-plane'); closeBg.setAttribute('width', '.25'); closeBg.setAttribute('height', '.25'); closeBg.setAttribute('color', '#0b1b24'); close.appendChild(closeBg);
     const x = document.createElement('a-text'); x.setAttribute('value', '×'); x.setAttribute('position', '0 -.075 .015'); x.setAttribute('align', 'center'); x.setAttribute('width', '.44'); x.setAttribute('color', '#ffffff'); close.appendChild(x);
     close.addEventListener('click', ev => { ev.stopPropagation(); entity.remove(); cardCount--; updateCount(); for (let i=0; i<3; i++) setTimeout(() => spawnNear(pos), 90 + i * 105); }); entity.appendChild(close);
+    entity.classList.add('click-target');
+    entity.addEventListener('click', () => {
+      if (!entity.parentNode) return;
+      entity.removeAttribute('wave-flight'); entity.removeAttribute('animation__flow');
+      const player = camera.object3D.getWorldPosition(new THREE.Vector3()); const direction = camera.object3D.getWorldDirection(new THREE.Vector3()).normalize();
+      const target = {x: player.x + direction.x * 1.45, y: player.y, z: player.z + direction.z * 1.45};
+      entity.setAttribute('animation__pull', `property: position; to: ${target.x} ${target.y} ${target.z}; dur: 420; easing: easeOutQuad`);
+      entity.setAttribute('scale', '1.35 1.35 1.35');
+    });
     entity.setAttribute('animation__spawn', 'property: scale; to: 1 1 1; dur: 260; easing: easeOutBack');
     grid.appendChild(entity); cardCount++; updateCount(); flash(pos); if (started && !creatingInitial) tone();
     if (flight) entity.setAttribute('wave-flight', flight);
@@ -141,31 +154,28 @@
   function spawnWave() { const mode = waveCounter++ % 3, angle = mode * Math.PI / 3 + (Math.random() - .5) * .22, radius = 11 + Math.random() * 3; const from = {x: Math.sin(angle) * radius, y: .4 + Math.random() * 4.4, z: Math.cos(angle) * radius}; const to = {x: -from.x * 1.2, y: from.y + (Math.random() - .5) * 1.4, z: -from.z * 1.2}; makeCard(randomNews(), from, {from, to, amplitude: 1.1 + Math.random() * 1.7, frequency: mode + 1, duration: 3000 + Math.random() * 2600}); }
   function spawnNear() { spawnWave(); }
   function initialGrid() { creatingInitial = true; for (let row=0; row<6; row++) for (let col=0; col<20; col++) { const angle = col / 20 * Math.PI * 2; const radius = 5.3 + (row % 2) * .9 + (Math.random()-.5)*.35; makeCard(randomNews(), {x: Math.sin(angle)*radius, y: -1.3 + row * 1.04, z: Math.cos(angle)*radius}); } creatingInitial = false; }
-  function updateCount() { countEl.textContent = Math.max(0, cardCount) + ' MELDUNGEN'; }
+  function updateCount() { if (countEl) countEl.textContent = Math.max(0, cardCount) + ' MELDUNGEN'; }
   function rhythm() { const elapsed = (Date.now() - startTime) / 1000; let delay, amount = 1;
     if (elapsed < 1) { phaseEl.textContent = 'STILLE'; sequenceTimer = setTimeout(rhythm, 160); return; }
-    if (elapsed < 11) { phaseEl.textContent = 'WELLE 1 · es beginnt langsam'; delay = Math.max(240, 1050 - (elapsed - 1) * 80); }
-    else if (elapsed < 13) { phaseEl.textContent = 'KURZE PAUSE'; sequenceTimer = setTimeout(rhythm, 160); return; }
-    else if (elapsed < 23) { phaseEl.textContent = 'WELLE 2 · immer mehr'; delay = Math.max(100, 470 - (elapsed - 13) * 34); amount = 1 + Math.floor((elapsed - 13) / 3); }
-    else if (elapsed < 30) { phaseEl.textContent = 'ÜBERFLUTUNG'; delay = 150; amount = 3; }
-    else { showEscape(); return; }
+    if (elapsed >= 15 && !escapeShown) { showEscape(); return; }
+    if (elapsed < 300) { phaseEl.textContent = 'LANGSAME ÜBERFLUTUNG'; delay = 4700; }
+    else if (elapsed < 600) { phaseEl.textContent = 'SCHNELLE ÜBERFLUTUNG'; delay = 780; amount = 2; }
+    else { phaseEl.textContent = 'ÜBERTRIEBENE ÜBERFLUTUNG'; delay = 140; amount = 3; }
     for (let i = 0; i < amount; i++) setTimeout(() => spawnNear({x: Math.sin(Math.random()*6.28)*7, y: 1+Math.random()*3, z: Math.cos(Math.random()*6.28)*7}), i * 65);
     sequenceTimer = setTimeout(rhythm, delay);
   }
   function showEscape() {
     if (escapePanel.getAttribute('visible')) return;
-    clearTimeout(sequenceTimer); phaseEl.textContent = 'AUSWEG';
+    clearTimeout(sequenceTimer); escapeShown = true; phaseEl.textContent = 'AUSWEG';
     const player = camera.object3D.getWorldPosition(new THREE.Vector3());
     const direction = camera.object3D.getWorldDirection(new THREE.Vector3()).normalize();
     escapePanel.setAttribute('position', {x: player.x + direction.x * 3.1, y: player.y, z: player.z + direction.z * 3.1});
     escapePanel.setAttribute('visible', true);
   }
   document.querySelector('#leave-room').addEventListener('click', () => {
-    grid.innerHTML = ''; cardCount = 0; updateCount(); escapePanel.setAttribute('visible', false); phaseEl.textContent = 'RAUM VERLASSEN';
-    document.querySelector('#overlay').innerHTML = '<div id="start-panel"><h1>STILLE</h1><p>Du hast den Raum verlassen. Für einen Moment sind keine neuen Nachrichten da.</p><button onclick="location.reload()">NOCH EINMAL BETRETEN</button></div>';
-    document.querySelector('#overlay').classList.remove('hidden');
+    location.href = 'social.html';
   });
-  document.querySelector('#stay-room').addEventListener('click', () => { escapePanel.setAttribute('visible', false); startTime = Date.now() - 13 * 1000; rhythm(); });
+  document.querySelector('#stay-room').addEventListener('click', () => { escapePanel.setAttribute('visible', false); rhythm(); });
   async function loadRSS() { const fetched = await Promise.allSettled(FEEDS.map(async feed => { const proxy = 'https://api.allorigins.win/raw?url=' + encodeURIComponent(feed.url); const response = await fetch(proxy, {cache:'no-store'}); if (!response.ok) throw Error('Feed unavailable'); const xml = new DOMParser().parseFromString(await response.text(), 'text/xml'); return [...xml.querySelectorAll('item')].slice(0, 10).map(i => ({source: feed.name, title: i.querySelector('title')?.textContent || '', text: i.querySelector('description')?.textContent.replace(/<[^>]+>/g, '') || ''})); }));
     const live = fetched.filter(x=>x.status==='fulfilled').flatMap(x=>x.value).filter(x=>x.title); if (live.length) news = live; }
   document.querySelector('#start').addEventListener('click', () => { if (started) return; started = true; startTime = Date.now(); document.querySelector('#overlay').classList.add('hidden'); tone(); rhythm(); loadRSS(); });
