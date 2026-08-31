@@ -2,184 +2,138 @@
 <html lang="de">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#010604">
-  <title>Nachrichtenraum</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#000000">
+  <title>Unendlicher Feed — Nachrichtenraum</title>
   <script src="https://aframe.io/releases/1.6.0/aframe.min.js"></script>
   <style>
     :root { color-scheme: dark; font-family: Arial, Helvetica, sans-serif; }
-    body { margin: 0; overflow: hidden; background: #010604; color: #effff8; }
-    #landing { position: fixed; z-index: 5; inset: 0; pointer-events: none; display: grid; place-items: center; background: radial-gradient(ellipse at center, #0c1d14aa 0%, #01060422 36%, #010604cc 100%); }
-    #landing h1 { margin: 0 0 18px; font-weight: 400; letter-spacing: .14em; font-size: clamp(2rem, 5vw, 4.8rem); text-shadow: 0 0 25px #abffe455; }
-    #landing .center { text-align: center; pointer-events: auto; }
-    #landing button { border: 1px solid #caffea; border-radius: 0; padding: 14px 54px; color: #07140e; background: #eafff5; letter-spacing: .16em; font-weight: bold; cursor: pointer; font-size: 1rem; }
-    .corner { position: fixed; z-index: 6; font-size: 10px; letter-spacing: .16em; color: #caffea99; pointer-events: none; }
-    #archive { top: 22px; right: 24px; text-align: right; } #signature { bottom: 20px; right: 24px; } #space { bottom: 20px; left: 24px; }
-    #status { position: fixed; z-index: 4; left: 18px; top: 18px; max-width: 260px; font-size: 12px; line-height: 1.5; letter-spacing: .04em; color: #c8ffe9; opacity: 0; transition: opacity .8s; pointer-events: none; }
-    #status.visible { opacity: .8; }
-    .quiet { font-size: 11px; color: #b9dbc9; margin-top: 18px; max-width: 300px; line-height: 1.5; }
+    body { margin: 0; overflow: hidden; background: #000; color: #effaff; }
+    #overlay { position: fixed; z-index: 10; inset: 0; display: grid; place-items: center; background: radial-gradient(circle at center, #10192188, #000 66%); transition: opacity .8s; }
+    #overlay.hidden { opacity: 0; pointer-events: none; }
+    #start-panel { width: min(440px, calc(100vw - 48px)); padding: 31px; border: 1px solid #c9f2ff99; background: #05090dcc; box-shadow: 0 0 70px #7cdcff22; text-align: center; }
+    h1 { margin: 0 0 9px; letter-spacing: .17em; font-size: clamp(25px, 5vw, 44px); font-weight: 500; }
+    p { line-height: 1.55; color: #b8cbd5; }
+    button { padding: 14px 26px; border: 1px solid #e5faff; background: #e5faff; color: #061017; font-weight: 700; letter-spacing: .12em; cursor: pointer; }
+    #hud { position: fixed; z-index: 8; top: 21px; left: 23px; pointer-events: none; font-size: 10px; letter-spacing: .15em; color: #c2e2ef; text-shadow: 0 1px 5px #000; }
+    #hud strong { display: block; margin: 5px 0; color: white; font-size: 18px; font-weight: 500; }
+    #hud small { color: #8ea5b1; }
   </style>
 </head>
 <body>
-  <main id="landing">
-    <div class="center">
-      <h1>NACHRICHTENRAUM</h1>
-      <button id="start-button">STARTEN</button>
-      <p class="quiet">Setze dein Headset auf, schaue dich um und nutze Controller oder Maus.</p>
+  <section id="overlay">
+    <div id="start-panel">
+      <h1>UNENDLICHER FEED</h1>
+      <p>Ein Raum für politische Informationsüberflutung. Drehe dich um, bewege dich mit dem linken Stick und schließe Meldungen mit dem Laserpointer.</p>
+      <button id="start">RAUM BETRETEN</button>
+      <p><small>WebXR / Meta Quest: Im Browser anschließend das VR-Symbol wählen.</small></p>
     </div>
-  </main>
-  <span id="archive" class="corner">THEMEN · JUNI 2026<br>ARCHIV · NICHT AKTUELL</span>
-  <span id="space" class="corner">DIGITALER RAUM</span>
-  <span id="signature" class="corner">ANNIKABRYCHZY</span>
-  <div id="status"></div>
+  </section>
+  <div id="hud">INFORMATIONSRAUM<strong id="phase">MORGEN · erste Meldungen</strong><small id="count">0 MELDUNGEN</small></div>
 
-  <a-scene id="scene" background="color: #010604" vr-mode-ui="enabled: true" renderer="colorManagement: true; physicallyCorrectLights: true">
-    <a-entity id="rig" position="0 0 0">
-      <a-camera id="camera" position="0 1.65 0" look-controls wasd-controls="acceleration: 20">
-        <a-entity cursor="rayOrigin: entity; fuse: false" raycaster="objects: .clickable" position="0 0 -1" geometry="primitive: ring; radiusInner: .008; radiusOuter: .014" material="color: #dfffee; shader: flat"></a-entity>
+  <a-scene id="scene" renderer="antialias: true; colorManagement: true" background="color: #000000" vr-mode-ui="enabled: true" loading-screen="enabled: false">
+    <a-entity id="rig" position="0 1.65 0" smooth-locomotion>
+      <a-camera id="camera" look-controls wasd-controls="acceleration: 18">
+        <a-entity cursor="rayOrigin: mouse" raycaster="objects: .click-target" position="0 0 -1" geometry="primitive: ring; radiusInner: .008; radiusOuter: .014" material="color: #e3fbff; shader: flat"></a-entity>
       </a-camera>
-      <a-entity laser-controls="hand: left" raycaster="objects: .clickable; far: 18" line="color: #b6ffe2; opacity: .55"></a-entity>
-      <a-entity laser-controls="hand: right" raycaster="objects: .clickable; far: 18" line="color: #b6ffe2; opacity: .55"></a-entity>
+      <a-entity id="left-hand" oculus-touch-controls="hand: left" laser-controls="hand: left" raycaster="objects: .click-target; far: 20" line="color: #bdeeff; opacity: .65"></a-entity>
+      <a-entity id="right-hand" oculus-touch-controls="hand: right" laser-controls="hand: right" raycaster="objects: .click-target; far: 20" line="color: #bdeeff; opacity: .65"></a-entity>
     </a-entity>
-    <a-light type="ambient" color="#295445" intensity=".35"></a-light>
-    <a-light id="pulse-light" type="point" color="#8dffd1" intensity="0" distance="8" position="0 3 0"></a-light>
-    <a-sky color="#010604"></a-sky>
-    <a-plane rotation="-90 0 0" width="80" height="80" color="#030906" material="metalness:.4; roughness:.82"></a-plane>
-    <a-circle rotation="-90 0 0" radius="7" color="#06110b" material="emissive:#06341f; emissiveIntensity:.18"></a-circle>
-    <a-torus position="0 5.5 0" rotation="90 0 0" radius="5.8" radius-tubular=".018" color="#68ffba" material="emissive:#00bb65; emissiveIntensity:1"></a-torus>
-    <a-entity id="room-label" position="0 3.3 -6">
-      <a-text value="NACHRICHTENRAUM" align="center" width="7" color="#caffea" letter-spacing=".12"></a-text>
-      <a-text value="Juni 2026 · Archiv" position="0 -.35 0" align="center" width="3.2" color="#79b998"></a-text>
-    </a-entity>
-    <a-entity id="cards"></a-entity>
-    <a-entity id="story"></a-entity>
-    <a-entity id="vr-start" class="clickable" position="0 1.7 -3.2">
-      <a-plane width="3.8" height="1.6" color="#eafff5" material="emissive:#75e6ac; emissiveIntensity:.32"></a-plane>
-      <a-text value="NACHRICHTENRAUM" position="0 .38 .02" align="center" width="3.2" color="#06120c"></a-text>
-      <a-text value="STARTEN" position="0 -.32 .02" align="center" width="2.4" color="#06120c"></a-text>
-    </a-entity>
+    <a-light type="ambient" color="#0b1118" intensity="0.18"></a-light>
+    <a-light id="flashlight" type="point" color="#ccefff" intensity="0" distance="10" decay="2" position="0 2 0"></a-light>
+    <a-sky color="#000000"></a-sky>
+    <a-plane rotation="-90 0 0" width="180" height="180" color="#030609" material="roughness: .98; metalness: .1"></a-plane>
+    <a-entity id="news-grid"></a-entity>
   </a-scene>
 
   <script>
-    const cards = document.querySelector('#cards');
-    const story = document.querySelector('#story');
-    const landing = document.querySelector('#landing');
-    const status = document.querySelector('#status');
-    const vrStart = document.querySelector('#vr-start');
-    const light = document.querySelector('#pulse-light');
-    let activeTimers = [], stage = 0, social = false, started = false;
+  /* A complete static WebXR scene: network feeds are optional; the exhibition works offline using FALLBACK_NEWS. */
+  const FALLBACK_NEWS = [
+    {source:'Tagesschau', title:'Haushaltsdebatte prägt die politische Woche', text:'Im Parlament wird weiter über Prioritäten, Investitionen und soziale Sicherung beraten.'},
+    {source:'Tagesschau', title:'Europa sucht nach gemeinsamen Antworten', text:'Bei den Gesprächen stehen Sicherheit, Klima und wirtschaftliche Folgen im Mittelpunkt.'},
+    {source:'SPIEGEL', title:'Neue Zahlen lösen politische Diskussionen aus', text:'Regierung und Opposition bewerten die aktuelle Entwicklung sehr unterschiedlich.'},
+    {source:'SPIEGEL', title:'Kommunen fordern rasche Entlastung', text:'Städte und Gemeinden warnen vor wachsenden Belastungen in ihren Haushalten.'},
+    {source:'taz', title:'Junge Stimmen verlangen mehr Beteiligung', text:'Initiativen diskutieren darüber, wie politische Teilhabe erreichbar bleibt.'},
+    {source:'taz', title:'Klimapolitik zwischen Anspruch und Alltag', text:'Neue Entscheidungen treffen auf unterschiedliche Erwartungen in der Gesellschaft.'},
+    {source:'Tagesschau', title:'Weitere Verhandlungen bis in die Nacht', text:'Eine Einigung gilt weiter als offen. Der Ticker wird fortlaufend aktualisiert.'},
+    {source:'SPIEGEL', title:'Analyse: Was die Entscheidung bedeutet', text:'Die Auswirkungen reichen über die heutige Nachricht hinaus.'},
+    {source:'taz', title:'Debatte um Wohnraum wird lauter', text:'Die Frage nach gerechter Verteilung bestimmt viele kommunale Diskussionen.'}
+  ];
+  const FEEDS = [
+    {name:'Tagesschau', url:'https://www.tagesschau.de/infoservices/alle-meldungen-100~rss2.xml'},
+    {name:'SPIEGEL', url:'https://www.spiegel.de/politik/index.rss'},
+    {name:'taz', url:'https://taz.de/!p4608;rss/'}
+  ];
+  const grid = document.querySelector('#news-grid');
+  const camera = document.querySelector('#camera');
+  const light = document.querySelector('#flashlight');
+  const phaseEl = document.querySelector('#phase');
+  const countEl = document.querySelector('#count');
+  let news = [...FALLBACK_NEWS], started = false, startTime = 0, cardCount = 0, sequenceTimer;
 
-    const archiveNews = [
-      ['taz', 'Koalition berät über neue Wege in der Klimapolitik'],
-      ['Tagesschau', 'Haushaltsdebatte prägt die politische Woche'],
-      ['Wandern News', 'Bergwege zwischen Schutz und Tourismus'],
-      ['taz', 'Städte diskutieren über bezahlbaren Wohnraum'],
-      ['Tagesschau', 'Europa sucht nach gemeinsamen Antworten'],
-      ['Wandern News', 'Sommerwege: Natur erleben, Räume schützen'],
-      ['taz', 'Junge Stimmen fordern mehr politische Beteiligung'],
-      ['Tagesschau', 'Neue Zahlen lösen viele Fragen aus']
-    ];
-    const socialNews = [
-      ['SOCIAL', 'KI-Video: Ein Hund spricht über deinen Feed'],
-      ['REEL', 'Noch ein Clip. Noch ein Swipe. Noch ein Impuls.'],
-      ['VIDEO', 'Trend: Was du heute unbedingt sehen musst'],
-      ['STREAM', 'Du bist nicht fertig. Es gibt noch mehr.'],
-      ['SOCIAL', 'Ein perfekter Moment, endlos wiederholt'],
-      ['REEL', 'Empfohlen für dich — und noch einmal für dich']
-    ];
+  AFRAME.registerComponent('smooth-locomotion', {
+    schema: { speed: {default: 2.1} },
+    init() { this.direction = new THREE.Vector3(); this.forward = new THREE.Vector3(); this.right = new THREE.Vector3(); },
+    tick(_, dt) {
+      const controllers = [document.querySelector('#left-hand'), document.querySelector('#right-hand')];
+      let axes = null;
+      for (const hand of controllers) {
+        const tracked = hand && hand.components['tracked-controls'];
+        const gamepad = tracked && tracked.controller && tracked.controller.gamepad;
+        if (gamepad && gamepad.axes && gamepad.axes.length >= 2) { axes = gamepad.axes; break; }
+      }
+      if (!axes) return;
+      const x = Math.abs(axes[0]) > .14 ? axes[0] : 0;
+      const y = Math.abs(axes[1]) > .14 ? axes[1] : 0;
+      if (!x && !y) return;
+      camera.object3D.getWorldDirection(this.forward); this.forward.y = 0; this.forward.normalize();
+      this.right.crossVectors(this.forward, new THREE.Vector3(0, 1, 0)).normalize();
+      this.direction.copy(this.forward).multiplyScalar(-y).addScaledVector(this.right, x).normalize();
+      this.el.object3D.position.addScaledVector(this.direction, this.data.speed * dt / 1000);
+    }
+  });
+  AFRAME.registerComponent('face-player', {
+    tick() { const p = camera.object3D.getWorldPosition(new THREE.Vector3()); p.y = this.el.object3D.position.y; this.el.object3D.lookAt(p); }
+  });
 
-    function pulse() {
-      light.setAttribute('intensity', '2.4');
-      setTimeout(() => light.setAttribute('intensity', '.15'), 160);
-    }
-    function randomPosition() {
-      const angle = Math.random() * Math.PI * 2;
-      const distance = 3.5 + Math.random() * 6;
-      const y = 1.15 + Math.random() * 3.8;
-      return { x: Math.sin(angle) * distance, y, z: Math.cos(angle) * distance };
-    }
-    function addText(parent, value, position, width, color, align='left') {
-      const text = document.createElement('a-text');
-      text.setAttribute('value', value);
-      text.setAttribute('position', position);
-      text.setAttribute('width', width);
-      text.setAttribute('color', color);
-      text.setAttribute('align', align);
-      text.setAttribute('wrap-count', 28);
-      parent.appendChild(text);
-      return text;
-    }
-    function addCard(multiplier = 1) {
-      const feed = social ? socialNews : archiveNews;
-      const item = feed[Math.floor(Math.random() * feed.length)];
-      const p = randomPosition();
-      const entity = document.createElement('a-entity');
-      entity.setAttribute('position', p);
-      entity.setAttribute('rotation', `0 ${Math.random() * 360} 0`);
-      const plane = document.createElement('a-plane');
-      plane.setAttribute('width', '2.8'); plane.setAttribute('height', '1.05');
-      plane.setAttribute('color', '#f4fff9');
-      plane.setAttribute('material', 'emissive: #b1ffd5; emissiveIntensity: .35; metalness:.1; roughness:.55');
-      entity.appendChild(plane);
-      addText(entity, item[0], '-1.18 .3 .025', 1.1, '#153b28');
-      addText(entity, item[1], '-1.18 .03 .025', 1.28, '#06130c');
-      const close = document.createElement('a-entity');
-      close.classList.add('clickable');
-      close.setAttribute('position', '1.16 .34 .035');
-      const closePlane = document.createElement('a-plane');
-      closePlane.setAttribute('width', '.3'); closePlane.setAttribute('height', '.3'); closePlane.setAttribute('color', '#0b2115');
-      close.appendChild(closePlane); addText(close, '×', '0 -.07 .02', .48, '#eafff5', 'center');
-      close.addEventListener('click', event => {
-        event.stopPropagation(); entity.remove();
-        if (started) { setTimeout(() => addCard(multiplier + 1), 100); setTimeout(() => addCard(multiplier + 1), 260); }
-      });
-      const end = { x: p.x * .32, y: p.y + (Math.random() - .5) * 1.5, z: p.z * .32 };
-      entity.setAttribute('animation', `property: position; to: ${end.x} ${end.y} ${end.z}; dur: ${9000 / multiplier + Math.random() * 3000}; easing: linear; loop: false`);
-      cards.appendChild(entity);
-      pulse();
-      setTimeout(() => { if (entity.parentNode && !entity.matches(':hover')) entity.remove(); }, 15000);
-    }
-    function clearCards() { cards.innerHTML = ''; activeTimers.forEach(clearTimeout); activeTimers = []; }
-    function say(text) { status.textContent = text; status.classList.add('visible'); }
-    function hideStatus() { status.classList.remove('visible'); }
-    function scheduleFlood(seconds, every, label) {
-      say(label);
-      const interval = setInterval(() => addCard(stage), every);
-      activeTimers.push(interval);
-      const stop = setTimeout(() => { clearInterval(interval); activeTimers = activeTimers.filter(t => t !== interval); clearCards(); setTimeout(() => showChoice(), 1800); }, seconds * 1000);
-      activeTimers.push(stop);
-    }
-    function button(parent, title, pos, action) {
-      const b = document.createElement('a-entity'); b.classList.add('clickable'); b.setAttribute('position', pos);
-      const plane = document.createElement('a-plane'); plane.setAttribute('width', '2.05'); plane.setAttribute('height', '.58'); plane.setAttribute('color', '#dfffee'); b.appendChild(plane);
-      addText(b, title, '0 -.08 .025', .82, '#06130c', 'center');
-      b.addEventListener('click', action); parent.appendChild(b);
-    }
-    function showChoice() {
-      hideStatus(); story.innerHTML = '';
-      const panel = document.createElement('a-entity'); panel.setAttribute('position', '0 1.75 -4.2');
-      const bg = document.createElement('a-plane'); bg.setAttribute('width', '5.4'); bg.setAttribute('height', '2.3'); bg.setAttribute('color', '#0a1c12'); bg.setAttribute('material', 'emissive:#0e472a; emissiveIntensity:.2'); panel.appendChild(bg);
-      addText(panel, stage < 3 ? 'Möchtest du in diesem Raum bleiben?' : 'Möchtest du bleiben?', '0 .55 .03', 3.1, '#ecfff5', 'center');
-      addText(panel, 'Die Pause ist nur kurz.', '0 .18 .03', 1.55, '#91c9aa', 'center');
-      button(panel, 'BLEIBEN', '-1.18 -.6 .04', () => { panel.remove(); stage++; stage === 2 ? scheduleFlood(10, 520, 'Die Wellen werden dichter.') : scheduleFlood(14, 220, 'Es ist zu viel.'); });
-      button(panel, stage < 3 ? 'NEUEN RAUM' : 'WEGGEHEN', '1.18 -.6 .04', () => { panel.remove(); enterSocialRoom(); });
-      story.appendChild(panel);
-    }
-    function enterSocialRoom() {
-      clearCards(); social = true; stage = 1;
-      document.querySelector('#room-label').setAttribute('visible', false);
-      say('Ein anderer Raum. Andere Reize.');
-      scheduleFlood(10, 950, 'Clips, KI-Bilder, Reels — sie finden dich.');
-    }
-    function startExperience() {
-      if (started) return;
-      started = true; stage = 1; landing.style.display = 'none'; vrStart.setAttribute('visible', false);
-      say('Zuerst ist es ruhig.');
-      const first = setTimeout(() => scheduleFlood(10, 1350, 'Die ersten Nachrichten ziehen vorbei.'), 1200);
-      activeTimers.push(first);
-    }
-    document.querySelector('#start-button').addEventListener('click', startExperience);
-    vrStart.addEventListener('click', startExperience);
+  function escapeHTML(s) { const d = document.createElement('div'); d.textContent = s || ''; return d.innerHTML; }
+  function short(s, n) { s = (s || '').replace(/\s+/g, ' ').trim(); return s.length > n ? s.slice(0, n - 1) + '…' : s; }
+  function tone() {
+    try { const a = new (window.AudioContext || window.webkitAudioContext)(); const o = a.createOscillator(), g = a.createGain(); o.type = 'sine'; o.frequency.setValueAtTime(360, a.currentTime); o.frequency.exponentialRampToValueAtTime(120, a.currentTime + .09); g.gain.setValueAtTime(.045, a.currentTime); g.gain.exponentialRampToValueAtTime(.001, a.currentTime + .12); o.connect(g).connect(a.destination); o.start(); o.stop(a.currentTime + .13); } catch (_) {}
+  }
+  function flash(position) { light.setAttribute('position', position); light.setAttribute('intensity', 2.3); setTimeout(() => light.setAttribute('intensity', 0), 120); }
+  function sourceColor(source) { return source === 'Tagesschau' ? '#65d3ff' : source === 'SPIEGEL' ? '#ff808c' : '#f2bd58'; }
+  function randomNews() { return news[Math.floor(Math.random() * news.length)]; }
+  function makeCard(item, pos) {
+    const entity = document.createElement('a-entity');
+    entity.setAttribute('position', pos); entity.setAttribute('face-player', ''); entity.setAttribute('scale', '0.01 0.01 0.01');
+    const panel = document.createElement('a-plane'); panel.setAttribute('width', '1.72'); panel.setAttribute('height', '1.12'); panel.setAttribute('color', '#eaf8ff'); panel.setAttribute('material', 'emissive: #badff0; emissiveIntensity: .42; roughness: .65'); entity.appendChild(panel);
+    const stripe = document.createElement('a-plane'); stripe.setAttribute('width', '.045'); stripe.setAttribute('height', '1.12'); stripe.setAttribute('position', '-.835 0 .012'); stripe.setAttribute('color', sourceColor(item.source)); entity.appendChild(stripe);
+    function label(value, position, width, color, align='left') { const el = document.createElement('a-text'); el.setAttribute('value', value); el.setAttribute('position', position); el.setAttribute('width', width); el.setAttribute('color', color); el.setAttribute('align', align); el.setAttribute('wrap-count', 28); entity.appendChild(el); }
+    label(item.source.toUpperCase(), '-.68 .38 .025', .52, '#375160');
+    label(short(item.title, 90), '-.68 .12 .025', .92, '#07131b');
+    label(short(item.text, 120), '-.68 -.35 .025', .62, '#436371');
+    const close = document.createElement('a-entity'); close.classList.add('click-target'); close.setAttribute('position', '.65 .38 .04');
+    const closeBg = document.createElement('a-plane'); closeBg.setAttribute('width', '.25'); closeBg.setAttribute('height', '.25'); closeBg.setAttribute('color', '#0b1b24'); close.appendChild(closeBg);
+    const x = document.createElement('a-text'); x.setAttribute('value', '×'); x.setAttribute('position', '0 -.075 .015'); x.setAttribute('align', 'center'); x.setAttribute('width', '.44'); x.setAttribute('color', '#ffffff'); close.appendChild(x);
+    close.addEventListener('click', ev => { ev.stopPropagation(); entity.remove(); cardCount--; updateCount(); for (let i=0; i<3; i++) setTimeout(() => spawnNear(pos), 90 + i * 105); }); entity.appendChild(close);
+    entity.setAttribute('animation__spawn', 'property: scale; to: 1 1 1; dur: 260; easing: easeOutBack');
+    grid.appendChild(entity); cardCount++; updateCount(); flash(pos); return entity;
+  }
+  function spawnNear(origin) { const a = Math.atan2(origin.x, origin.z) + (Math.random() - .5) * .36; const r = 4 + Math.random() * 5; makeCard(randomNews(), {x: Math.sin(a)*r, y: .3 + Math.random()*4.8, z: Math.cos(a)*r}); }
+  function initialGrid() { for (let row=0; row<6; row++) for (let col=0; col<20; col++) { const angle = col / 20 * Math.PI * 2; const radius = 5.3 + (row % 2) * .9 + (Math.random()-.5)*.35; makeCard(randomNews(), {x: Math.sin(angle)*radius, y: -1.3 + row * 1.04, z: Math.cos(angle)*radius}); } }
+  function updateCount() { countEl.textContent = Math.max(0, cardCount) + ' MELDUNGEN'; }
+  function rhythm() { const elapsed = (Date.now() - startTime) / 1000; let delay;
+    if (elapsed < 45) { phaseEl.textContent = 'MORGEN · erste Meldungen'; delay = 6200; }
+    else if (elapsed < 105) { phaseEl.textContent = 'MITTAG · Verdichtung'; delay = 1600; }
+    else { phaseEl.textContent = 'ABEND · ÜBERFLUTUNG'; delay = 360; }
+    spawnNear({x: Math.sin(Math.random()*6.28)*7, y: 1+Math.random()*3, z: Math.cos(Math.random()*6.28)*7});
+    sequenceTimer = setTimeout(rhythm, delay);
+  }
+  async function loadRSS() { const fetched = await Promise.allSettled(FEEDS.map(async feed => { const proxy = 'https://api.allorigins.win/raw?url=' + encodeURIComponent(feed.url); const response = await fetch(proxy, {cache:'no-store'}); if (!response.ok) throw Error('Feed unavailable'); const xml = new DOMParser().parseFromString(await response.text(), 'text/xml'); return [...xml.querySelectorAll('item')].slice(0, 10).map(i => ({source: feed.name, title: i.querySelector('title')?.textContent || '', text: i.querySelector('description')?.textContent.replace(/<[^>]+>/g, '') || ''})); }));
+    const live = fetched.filter(x=>x.status==='fulfilled').flatMap(x=>x.value).filter(x=>x.title); if (live.length) news = live; }
+  document.querySelector('#start').addEventListener('click', () => { if (started) return; started = true; startTime = Date.now(); document.querySelector('#overlay').classList.add('hidden'); tone(); initialGrid(); rhythm(); loadRSS(); });
   </script>
 </body>
 </html>
+
