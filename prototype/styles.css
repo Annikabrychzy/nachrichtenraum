@@ -1,0 +1,32 @@
+@import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;600;700&display=swap');
+
+:root { color-scheme: dark; }
+* { box-sizing: border-box; }
+body { margin: 0; overflow: hidden; background: #020304; color: #f7f8f6; font-family: Manrope, sans-serif; }
+#experience { min-height: 100vh; position: relative; overflow: hidden; perspective: 900px; background: radial-gradient(ellipse at 50% 58%, #0c1116 0%, #030506 46%, #000 100%); cursor: grab; }
+#experience:active { cursor: grabbing; }
+#experience::after { content: ''; position: absolute; inset: 60% 0 0; background: repeating-radial-gradient(ellipse at center bottom, transparent 0 35px, rgba(255,255,255,.025) 36px 37px); transform: perspective(300px) rotateX(55deg); pointer-events: none; }
+.hud, .help, .counter { position: absolute; z-index: 5; }
+.hud { top: 32px; left: 38px; text-shadow: 0 1px 14px #000; }
+.eyebrow, .source, .counter, .hud p { font-family: 'DM Mono', monospace; letter-spacing: .13em; font-size: 11px; color: #9baab5; }
+h1 { margin: 4px 0 7px; font-size: clamp(23px, 3vw, 40px); letter-spacing: .05em; line-height: 1; }
+.hud p { margin: 0; }
+#news-space { position: absolute; inset: 0; transform-style: preserve-3d; transition: transform .12s ease-out; }
+.news-card { position: absolute; width: min(250px, 36vw); min-height: 112px; padding: 16px 17px; border: 1px solid rgba(232,246,255,.62); background: rgba(225,240,247,.95); color: #071015; box-shadow: 0 0 8px rgba(236,250,255,.9), 0 0 37px rgba(152,221,255,.3); transform: translate(-50%, -50%); animation: emerge .45s ease-out both; cursor: pointer; text-align: left; overflow: hidden; }
+.news-card::before { content: ''; position: absolute; inset: 0 auto 0 0; width: 3px; background: #4bb9f6; }
+.news-card .source { color: #3a728e; margin: 0 0 10px; font-size: 9px; }
+.news-card h2 { margin: 0; font-size: 14px; line-height: 1.35; font-weight: 700; }
+.news-card:hover { z-index: 3; filter: brightness(1.15); transform: translate(-50%, -50%) scale(1.04); }
+.flash { position: absolute; width: 10px; height: 10px; border-radius: 50%; background: #fff; box-shadow: 0 0 55px 27px rgba(190,238,255,.7); transform: translate(-50%, -50%); animation: flash .7s ease-out forwards; pointer-events: none; }
+.help { left: 38px; bottom: 31px; display: grid; gap: 5px; font-size: 11px; color: #9baab5; }
+.counter { right: 38px; bottom: 31px; margin: 0; }
+dialog { width: min(560px, calc(100vw - 40px)); padding: 42px; border: 1px solid #ddecf6; color: #eaf6ff; background: rgba(5,13,18,.96); box-shadow: 0 0 80px rgba(135,219,255,.25); }
+dialog::backdrop { background: rgba(0,0,0,.7); backdrop-filter: blur(4px); }
+dialog h2 { margin: 8px 0 18px; font-size: clamp(22px, 4vw, 34px); line-height: 1.16; }
+dialog p { line-height: 1.6; }
+.note { margin-top: 28px; padding-top: 16px; border-top: 1px solid #30444f; color: #7a9aaa; font-size: 12px; }
+.close { position: absolute; top: 10px; right: 14px; border: 0; background: transparent; color: #fff; font-size: 32px; cursor: pointer; }
+@keyframes emerge { from { opacity: 0; transform: translate(-50%, -50%) scale(.2); } to { opacity: 1; transform: translate(-50%, -50%) scale(1); } }
+@keyframes flash { to { opacity: 0; transform: translate(-50%, -50%) scale(18); } }
+@media (max-width: 600px) { .hud { top: 21px; left: 20px; } .help { left: 20px; bottom: 20px; max-width: 230px; } .counter { right: 20px; bottom: 20px; } .news-card { width: 190px; min-height: 94px; padding: 13px; } }
+
