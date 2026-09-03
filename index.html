@@ -34,7 +34,7 @@
   <div id="space" class="label">DIGITALER RAUM</div>
   <div id="signature" class="label">ANNIKABRYCHZY</div>
 
-  <a-scene id="scene" renderer="antialias: true; colorManagement: true" background="color: #000000" fog="type: exponential; color: #000000; density: .018" vr-mode-ui="enabled: true" loading-screen="enabled: false">
+  <a-scene id="scene" renderer="antialias: true; colorManagement: true" background="color: #020b12" fog="type: exponential; color: #03131c; density: .035" vr-mode-ui="enabled: true" loading-screen="enabled: false">
     <a-entity id="rig" position="0 0 0" smooth-locomotion joystick-turn>
       <a-camera id="camera" look-controls wasd-controls="acceleration: 18">
         <a-entity cursor="rayOrigin: mouse" raycaster="objects: .click-target" position="0 0 -1" geometry="primitive: ring; radiusInner: .008; radiusOuter: .014" material="color: #e3fbff; shader: flat"></a-entity>
@@ -42,8 +42,14 @@
       <a-entity id="left-hand" oculus-touch-controls="hand: left" laser-controls="hand: left" cursor="rayOrigin: entity; fuse: false" raycaster="objects: .click-target; far: 20" line="color: #bdeeff; opacity: .65"></a-entity>
       <a-entity id="right-hand" oculus-touch-controls="hand: right" laser-controls="hand: right" cursor="rayOrigin: entity; fuse: false" raycaster="objects: .click-target; far: 20" line="color: #bdeeff; opacity: .65"></a-entity>
     </a-entity>
+    <a-light type="ambient" color="#0e5367" intensity="0.22"></a-light>
+    <a-light type="hemisphere" color="#14738d" ground-color="#031017" intensity="0.32"></a-light>
     <a-light id="flashlight" type="point" color="#ccefff" intensity="0" distance="10" decay="2" position="0 2 0"></a-light>
-    <a-sky color="#000000"></a-sky>
+    <a-light type="point" color="#00d8ff" intensity="1.3" distance="24" decay="2" position="0 3 -8"></a-light>
+    <a-sky color="#020b12"></a-sky>
+    <a-plane rotation="-90 0 0" width="180" height="180" color="#031017" material="emissive: #062533; emissiveIntensity: .42; roughness: .6; metalness: .42"></a-plane>
+    <a-circle radius="12" rotation="-90 0 0" position="0 .014 0" color="#123a49" material="emissive: #245f72; emissiveIntensity: .38; opacity: .82; transparent: true; roughness: .48; metalness: .3"></a-circle>
+    <a-torus radius="12" radius-tubular=".022" rotation="-90 0 0" position="0 .03 0" material="color: #dff9ff; emissive: #a4eaff; emissiveIntensity: .75; opacity: .72; transparent: true"></a-torus>
     <a-entity id="news-grid"></a-entity>
     <a-entity id="starter-card" visible="false" position="0 1.65 -3.1" face-player place-in-front>
       <a-plane width="2.4" height="1.2" color="#ffffff" material="emissive: #b9e8f0; emissiveIntensity: .52; roughness: .5; metalness: .12"></a-plane>
