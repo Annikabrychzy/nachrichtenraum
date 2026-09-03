@@ -208,8 +208,35 @@
     location.href = 'exit-destination.html';
   });
   document.querySelector('#stay-room').addEventListener('click', () => { escapePanel.setAttribute('visible', false); rhythm(); });
-  async function loadRSS() { const fetched = await Promise.allSettled(FEEDS.map(async feed => { const proxy = 'https://api.allorigins.win/raw?url=' + encodeURIComponent(feed.url); const response = await fetch(proxy, {cache:'no-store'}); if (!response.ok) throw Error('Feed unavailable'); const xml = new DOMParser().parseFromString(await response.text(), 'text/xml'); return [...xml.querySelectorAll('item')].slice(0, 10).map(i => ({source: feed.name, title: i.querySelector('title')?.textContent || '', text: i.querySelector('description')?.textContent.replace(/<[^>]+>/g, '') || ''})); }));
-    const live = fetched.filter(x=>x.status==='fulfilled').flatMap(x=>x.value).filter(x=>x.title); if (live.length) news = live; }
+  async function fetchRSS(feed) {
+    const routes = [
+      'https://api.allorigins.win/raw?url=' + encodeURIComponent(feed.url),
+      'https://corsproxy.io/?url=' + encodeURIComponent(feed.url)
+    ];
+    for (const route of routes) {
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 6000);
+      try {
+        const response = await fetch(route, {cache:'no-store', signal: controller.signal});
+        if (!response.ok) continue;
+        const xml = new DOMParser().parseFromString(await response.text(), 'text/xml');
+        const items = [...xml.querySelectorAll('item')].slice(0, 10).map(i => ({
+          source: feed.name,
+          title: i.querySelector('title')?.textContent || '',
+          text: i.querySelector('description')?.textContent.replace(/<[^>]+>/g, '') || ''
+        })).filter(item => item.title);
+        if (items.length) return items;
+      } catch (_) {
+        // A proxy can be temporarily unavailable; the second route is tried next.
+      } finally { clearTimeout(timeout); }
+    }
+    return [];
+  }
+  async function loadRSS() {
+    const live = (await Promise.all(FEEDS.map(fetchRSS))).flat();
+    // The room remains active even if a publisher or proxy blocks a feed.
+    if (live.length) news = [...live, ...FALLBACK_NEWS];
+  }
   document.querySelector('#start').addEventListener('click', () => { if (started) return; started = true; startTime = Date.now(); document.querySelector('#overlay').classList.add('hidden'); tone(); rhythm(); loadRSS(); });
   </script>
 </body>
