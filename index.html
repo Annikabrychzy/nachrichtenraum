@@ -150,6 +150,7 @@
       const target = {x: player.x + direction.x * 1.55, y: player.y, z: player.z + direction.z * 1.55};
       entity.setAttribute('animation__hold', `property: position; to: ${target.x} ${target.y} ${target.z}; dur: 320; easing: easeOutQuad`);
       entity.setAttribute('animation__enlarge', 'property: scale; to: 2.15 2.15 2.15; dur: 320; easing: easeOutQuad');
+      if (!entity.querySelector('.pinned-label')) { const pinned = document.createElement('a-text'); pinned.classList.add('pinned-label'); pinned.setAttribute('value', 'ANGEHEFTET'); pinned.setAttribute('position', '-.68 .54 .05'); pinned.setAttribute('width', '.38'); pinned.setAttribute('color', '#b97800'); entity.appendChild(pinned); }
     });
     entity.setAttribute('animation__spawn', 'property: scale; to: 1 1 1; dur: 260; easing: easeOutBack');
     grid.appendChild(entity); cardCount++; updateCount(); flash(pos); if (started && !creatingInitial) tone();
