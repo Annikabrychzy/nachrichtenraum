@@ -127,13 +127,15 @@
   function makeCard(item, pos, flight = null) {
     const entity = document.createElement('a-entity');
     entity.setAttribute('position', pos); entity.setAttribute('face-player', ''); entity.setAttribute('scale', '0.01 0.01 0.01');
-    const panel = document.createElement('a-plane'); panel.classList.add('click-target'); panel.setAttribute('width', '1.72'); panel.setAttribute('height', '1.12'); panel.setAttribute('color', '#f8feff'); panel.setAttribute('material', 'emissive: #b9e8f0; emissiveIntensity: .46; roughness: .5; metalness: .12'); entity.appendChild(panel);
-    const stripe = document.createElement('a-plane'); stripe.setAttribute('width', '.045'); stripe.setAttribute('height', '1.12'); stripe.setAttribute('position', '-.835 0 .012'); stripe.setAttribute('color', sourceColor(item.source)); entity.appendChild(stripe);
+    const panel = document.createElement('a-plane'); panel.classList.add('click-target'); panel.setAttribute('width', '2.05'); panel.setAttribute('height', '1.28'); panel.setAttribute('color', '#ffffff'); panel.setAttribute('material', 'emissive: #b9e8f0; emissiveIntensity: .52; roughness: .5; metalness: .12'); entity.appendChild(panel);
+    const stripe = document.createElement('a-plane'); stripe.setAttribute('width', '.055'); stripe.setAttribute('height', '1.28'); stripe.setAttribute('position', '-.995 0 .012'); stripe.setAttribute('color', sourceColor(item.source)); entity.appendChild(stripe);
     function label(value, position, width, color, align='left') { const el = document.createElement('a-text'); el.setAttribute('value', value); el.setAttribute('position', position); el.setAttribute('width', width); el.setAttribute('color', color); el.setAttribute('align', align); el.setAttribute('wrap-count', 28); entity.appendChild(el); }
-    label(item.source.toUpperCase(), '-.68 .38 .025', .52, '#375160');
-    label(short(item.title, 90), '-.68 .12 .025', .92, '#07131b');
-    label(short(item.text, 120), '-.68 -.35 .025', .62, '#436371');
-    const close = document.createElement('a-entity'); close.classList.add('click-target'); close.setAttribute('position', '.65 .38 .04');
+    const badge = document.createElement('a-plane'); badge.setAttribute('width', '.72'); badge.setAttribute('height', '.19'); badge.setAttribute('position', '-.58 .47 .025'); badge.setAttribute('color', '#e5f5f8'); entity.appendChild(badge);
+    label('NEUE MELDUNG', '-.89 .415 .04', .32, '#276b82');
+    label(item.source.toUpperCase(), '-.2 .415 .04', .42, '#375160');
+    label(short(item.title, 90), '-.84 .1 .04', 1.1, '#07131b');
+    label(short(item.text, 120), '-.84 -.39 .04', .72, '#436371');
+    const close = document.createElement('a-entity'); close.classList.add('click-target'); close.setAttribute('position', '.82 .46 .05');
     const closeBg = document.createElement('a-plane'); closeBg.classList.add('click-target'); closeBg.setAttribute('width', '.25'); closeBg.setAttribute('height', '.25'); closeBg.setAttribute('color', '#0b1b24'); close.appendChild(closeBg);
     const x = document.createElement('a-text'); x.setAttribute('value', '×'); x.setAttribute('position', '0 -.075 .015'); x.setAttribute('align', 'center'); x.setAttribute('width', '.44'); x.setAttribute('color', '#ffffff'); close.appendChild(x);
     const dismiss = ev => {
