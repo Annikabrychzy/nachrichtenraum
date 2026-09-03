@@ -17,7 +17,8 @@
     button { padding: 14px 26px; border: 1px solid #e5faff; background: #e5faff; color: #061017; font-weight: 700; letter-spacing: .12em; cursor: pointer; }
     #start-panel button { display: block; margin: 25px auto 0; border-color: #05090d; background: #05090d; color: #ffffff; }
     .label { position: fixed; z-index: 8; pointer-events: none; font-size: 10px; letter-spacing: .13em; color: #b9d0db; text-shadow: 0 1px 5px #000; }
-    #hud, #archive { display: none; }
+    #hud { top: 21px; left: 23px; line-height: 1.7; }
+    #archive { display: none; }
     #space { bottom: 21px; left: 23px; z-index: 11; line-height: 1.7; } #signature { bottom: 21px; right: 23px; z-index: 11; text-align: right; }
   </style>
 </head>
@@ -134,8 +135,11 @@
 
   function escapeHTML(s) { const d = document.createElement('div'); d.textContent = s || ''; return d.innerHTML; }
   function short(s, n) { s = (s || '').replace(/\s+/g, ' ').trim(); return s.length > n ? s.slice(0, n - 1) + '…' : s; }
-  function tone() {
-    try { const Audio = window.AudioContext || window.webkitAudioContext; audioContext ||= new Audio(); const a = audioContext, g = a.createGain(); const first = a.createOscillator(), second = a.createOscillator(); first.type = second.type = 'sine'; first.frequency.setValueAtTime(880, a.currentTime); second.frequency.setValueAtTime(1320, a.currentTime + .075); g.gain.setValueAtTime(.038, a.currentTime); g.gain.exponentialRampToValueAtTime(.001, a.currentTime + .19); first.connect(g); second.connect(g); g.connect(a.destination); first.start(); first.stop(a.currentTime + .09); second.start(a.currentTime + .075); second.stop(a.currentTime + .2); } catch (_) {}
+  function tone(source = 'neutral') {
+    try { const Audio = window.AudioContext || window.webkitAudioContext; audioContext ||= new Audio(); const a = audioContext, g = a.createGain(); const first = a.createOscillator(), second = a.createOscillator(); const notes = {Tagesschau:760, SPIEGEL:680, taz:620, BILD:830, 'n-tv':710, WELT:740, Presseportal:650, ZDFheute:790}; const base = notes[source] || 700; first.type = 'sine'; second.type = 'triangle'; first.frequency.setValueAtTime(base, a.currentTime); second.frequency.setValueAtTime(base * 1.5, a.currentTime + .07); g.gain.setValueAtTime(.038, a.currentTime); g.gain.exponentialRampToValueAtTime(.001, a.currentTime + .2); first.connect(g); second.connect(g); g.connect(a.destination); first.start(); first.stop(a.currentTime + .1); second.start(a.currentTime + .07); second.stop(a.currentTime + .21); } catch (_) {}
+  }
+  function entryTone() {
+    try { const Audio = window.AudioContext || window.webkitAudioContext; audioContext ||= new Audio(); const a = audioContext, g = a.createGain(); g.gain.setValueAtTime(.045, a.currentTime); g.gain.exponentialRampToValueAtTime(.001, a.currentTime + .72); g.connect(a.destination); [392,523,659].forEach((frequency, index) => { const o = a.createOscillator(); o.type = 'sine'; o.frequency.setValueAtTime(frequency, a.currentTime + index * .16); o.connect(g); o.start(a.currentTime + index * .16); o.stop(a.currentTime + index * .16 + .22); }); } catch (_) {}
   }
   function flash(position) { light.setAttribute('position', position); light.setAttribute('intensity', 2.3); setTimeout(() => light.setAttribute('intensity', 0), 120); }
   function sourceColor(source) {
@@ -152,15 +156,15 @@
   function makeCard(item, pos, flight = null) {
     const entity = document.createElement('a-entity');
     entity.setAttribute('position', pos); entity.setAttribute('face-player', ''); entity.setAttribute('scale', '0.01 0.01 0.01');
-    const panel = document.createElement('a-plane'); panel.classList.add('click-target'); panel.setAttribute('width', '2.05'); panel.setAttribute('height', '1.28'); panel.setAttribute('color', '#ffffff'); panel.setAttribute('material', 'emissive: #b9e8f0; emissiveIntensity: .52; roughness: .5; metalness: .12'); entity.appendChild(panel);
-    const stripe = document.createElement('a-plane'); stripe.setAttribute('width', '.055'); stripe.setAttribute('height', '1.28'); stripe.setAttribute('position', '-.995 0 .012'); stripe.setAttribute('color', sourceColor(item.source)); entity.appendChild(stripe);
+    const panel = document.createElement('a-plane'); panel.classList.add('click-target'); panel.setAttribute('width', '2.4'); panel.setAttribute('height', '1.2'); panel.setAttribute('color', '#ffffff'); panel.setAttribute('material', 'emissive: #b9e8f0; emissiveIntensity: .52; roughness: .5; metalness: .12'); entity.appendChild(panel);
+    const stripe = document.createElement('a-plane'); stripe.setAttribute('width', '.055'); stripe.setAttribute('height', '1.2'); stripe.setAttribute('position', '-1.17 0 .012'); stripe.setAttribute('color', sourceColor(item.source)); entity.appendChild(stripe);
     function label(value, position, width, color, align='left') { const el = document.createElement('a-text'); el.setAttribute('value', value); el.setAttribute('position', position); el.setAttribute('width', width); el.setAttribute('color', color); el.setAttribute('align', align); el.setAttribute('wrap-count', 28); entity.appendChild(el); }
-    const badge = document.createElement('a-plane'); badge.setAttribute('width', '.72'); badge.setAttribute('height', '.19'); badge.setAttribute('position', '-.58 .47 .025'); badge.setAttribute('color', '#e5f5f8'); entity.appendChild(badge);
-    label('NEUE MELDUNG', '-.89 .415 .04', .32, '#276b82');
-    label(item.source.toUpperCase(), '-.2 .415 .04', .42, '#375160');
-    label(short(item.title, 90), '-.84 .1 .04', 1.1, '#07131b');
-    label(short(item.text, 120), '-.84 -.39 .04', .72, '#436371');
-    const close = document.createElement('a-entity'); close.classList.add('click-target'); close.setAttribute('position', '.82 .46 .05');
+    const badge = document.createElement('a-plane'); badge.setAttribute('width', '.72'); badge.setAttribute('height', '.19'); badge.setAttribute('position', '-.76 .42 .025'); badge.setAttribute('color', '#e5f5f8'); entity.appendChild(badge);
+    label('NEUE MELDUNG', '-1.06 .365 .04', .32, '#276b82');
+    label(item.source.toUpperCase(), '-.36 .365 .04', .42, '#375160');
+    label(short(item.title, 90), '-1.02 .05 .04', 1.28, '#07131b');
+    label(short(item.text, 120), '-1.02 -.37 .04', .8, '#436371');
+    const close = document.createElement('a-entity'); close.classList.add('click-target'); close.setAttribute('position', '1.05 .42 .05');
     const closeBg = document.createElement('a-plane'); closeBg.classList.add('click-target'); closeBg.setAttribute('width', '.25'); closeBg.setAttribute('height', '.25'); closeBg.setAttribute('color', '#0b1b24'); close.appendChild(closeBg);
     const x = document.createElement('a-text'); x.setAttribute('value', '×'); x.setAttribute('position', '0 -.075 .015'); x.setAttribute('align', 'center'); x.setAttribute('width', '.44'); x.setAttribute('color', '#ffffff'); close.appendChild(x);
     const dismiss = ev => {
@@ -183,7 +187,7 @@
     };
     panel.addEventListener('click', hold); panel.addEventListener('mousedown', hold);
     entity.setAttribute('animation__spawn', 'property: scale; to: 1 1 1; dur: 260; easing: easeOutBack');
-    grid.appendChild(entity); cardCount++; updateCount(); flash(pos); if (started && !creatingInitial) tone();
+    grid.appendChild(entity); cardCount++; updateCount(); flash(pos); if (started && !creatingInitial) tone(item.source);
     setTimeout(() => document.querySelectorAll('[raycaster]').forEach(ray => ray.components.raycaster?.refreshObjects()), 0);
     if (flight) entity.setAttribute('wave-flight', flight);
     else entity.setAttribute('animation__flow', `property: position; to: ${-pos.x * 1.35} ${pos.y + (Math.random() - .5) * 1.2} ${-pos.z * 1.35}; dur: ${2600 + Math.random() * 2600}; easing: linear`);
@@ -196,7 +200,7 @@
   function updateCount() { if (countEl) countEl.textContent = Math.max(0, cardCount) + ' MELDUNGEN'; }
   function clearNews() { grid.innerHTML = ''; cardCount = 0; updateCount(); }
   function rhythm() { const elapsed = (Date.now() - startTime) / 1000; let delay, amount, stage;
-    if (elapsed < 10) { stage = 'slow'; phaseEl.textContent = 'LANGSAME ÜBERFLUTUNG'; delay = 1150; amount = 1; }
+    if (elapsed < 10) { stage = 'slow'; phaseEl.textContent = 'MORGEN · 07:00'; delay = 1150; amount = 1; }
     else if (elapsed < 12) { stage = 'pause-one'; phaseEl.textContent = 'PAUSE'; delay = 180; amount = 0; }
     else if (elapsed < 22) { stage = 'fast'; phaseEl.textContent = 'SCHNELLE ÜBERFLUTUNG'; delay = Math.max(240, 980 - (elapsed - 12) * 68); amount = 1; }
     else if (elapsed < 24) { stage = 'pause-two'; phaseEl.textContent = 'PAUSE'; delay = 180; amount = 0; }
@@ -250,10 +254,8 @@
   }
   document.querySelector('#start').addEventListener('click', () => {
     if (started) return;
-    started = true; startTime = Date.now(); document.querySelector('#overlay').classList.add('hidden'); tone();
-    // The familiar news flow starts visibly at once, then continues in the slow first phase.
-    [FALLBACK_NEWS[0], FALLBACK_NEWS[2], FALLBACK_NEWS[5]].forEach((item, i) => setTimeout(() => spawnWave(item), i * 620));
-    rhythm(); loadRSS();
+    started = true; document.querySelector('#overlay').classList.add('hidden'); entryTone(); loadRSS();
+    setTimeout(() => { startTime = Date.now(); rhythm(); }, 2000);
   });
   </script>
 </body>
