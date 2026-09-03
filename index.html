@@ -16,23 +16,20 @@
     p { line-height: 1.55; color: #b8cbd5; }
     button { padding: 14px 26px; border: 1px solid #e5faff; background: #e5faff; color: #061017; font-weight: 700; letter-spacing: .12em; cursor: pointer; }
     .label { position: fixed; z-index: 8; pointer-events: none; font-size: 10px; letter-spacing: .13em; color: #b9d0db; text-shadow: 0 1px 5px #000; }
-    #hud { top: 21px; left: 23px; } #hud strong { display: block; margin-top: 5px; color: white; font-size: 16px; font-weight: 500; }
-    #archive { top: 21px; right: 23px; max-width: 265px; text-align: right; color: #8fa7b4; line-height: 1.55; }
+    #hud, #archive { display: none; }
     #space { bottom: 21px; left: 23px; line-height: 1.7; } #signature { bottom: 21px; right: 23px; text-align: right; }
   </style>
 </head>
 <body>
   <section id="overlay">
     <div id="start-panel">
-      <h1>UNENDLICHER FEED</h1>
-      <p>Ein Raum für politische Informationsüberflutung. Drehe dich um, bewege dich mit dem linken Stick und schließe Meldungen mit dem Laserpointer.</p>
+      <h1>NACHRICHTENRAUM</h1>
       <button id="start">RAUM BETRETEN</button>
-      <p><small>WebXR / Meta Quest: Im Browser anschließend das VR-Symbol wählen.</small></p>
     </div>
   </section>
-  <div id="hud" class="label">INFORMATIONSRAUM<strong id="phase">LANGSAME ÜBERFLUTUNG</strong></div>
-  <div id="archive" class="label">ARCHIVIERTE RSS-POLITIKMELDUNGEN<br>NUR ZUM KÜNSTLERISCHEN ZWECK</div>
-  <div id="space" class="label">DIGITALER RAUM<br>AUF DAS X KLICKEN, UM MELDUNGEN ZU SCHLIESSEN</div>
+  <div id="hud" class="label"><strong id="phase"></strong></div>
+  <div id="archive" class="label"></div>
+  <div id="space" class="label">DIGITALER RAUM</div>
   <div id="signature" class="label">ANNIKABRYCHZY</div>
 
   <a-scene id="scene" renderer="antialias: true; colorManagement: true" background="color: #071019" vr-mode-ui="enabled: true" loading-screen="enabled: false">
