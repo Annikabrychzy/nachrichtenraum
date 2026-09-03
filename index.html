@@ -9,15 +9,15 @@
   <style>
     :root { color-scheme: dark; font-family: Arial, Helvetica, sans-serif; }
     body { margin: 0; overflow: hidden; background: #000; color: #effaff; }
-    #overlay { position: fixed; z-index: 10; inset: 0; display: grid; place-items: center; background: radial-gradient(circle at center, #10192188, #000 66%); transition: opacity .8s; }
+    #overlay { position: fixed; z-index: 10; inset: 0; display: grid; place-items: center start; background: radial-gradient(circle at center, #10192188, #000 66%); transition: opacity .8s; }
     #overlay.hidden { opacity: 0; pointer-events: none; }
-    #start-panel { width: min(440px, calc(100vw - 48px)); padding: 31px; border: 1px solid #c9f2ff99; background: #05090dcc; box-shadow: 0 0 70px #7cdcff22; text-align: center; }
+    #start-panel { width: min(560px, calc(100vw - 48px)); margin-left: clamp(24px, 12vw, 190px); padding: 44px; border: 1px solid #c9f2ff99; background: #05090dcc; box-shadow: 0 0 70px #7cdcff22; text-align: left; }
     h1 { margin: 0 0 9px; letter-spacing: .17em; font-size: clamp(25px, 5vw, 44px); font-weight: 500; }
     p { line-height: 1.55; color: #b8cbd5; }
     button { padding: 14px 26px; border: 1px solid #e5faff; background: #e5faff; color: #061017; font-weight: 700; letter-spacing: .12em; cursor: pointer; }
     .label { position: fixed; z-index: 8; pointer-events: none; font-size: 10px; letter-spacing: .13em; color: #b9d0db; text-shadow: 0 1px 5px #000; }
     #hud, #archive { display: none; }
-    #space { bottom: 21px; left: 23px; line-height: 1.7; } #signature { bottom: 21px; right: 23px; text-align: right; }
+    #space { bottom: 21px; left: 23px; z-index: 11; line-height: 1.7; } #signature { bottom: 21px; right: 23px; z-index: 11; text-align: right; }
   </style>
 </head>
 <body>
