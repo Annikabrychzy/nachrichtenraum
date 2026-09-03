@@ -68,7 +68,12 @@
     {source:'taz', title:'Klimapolitik zwischen Anspruch und Alltag', text:'Neue Entscheidungen treffen auf unterschiedliche Erwartungen in der Gesellschaft.'},
     {source:'Tagesschau', title:'Weitere Verhandlungen bis in die Nacht', text:'Eine Einigung gilt weiter als offen. Der Ticker wird fortlaufend aktualisiert.'},
     {source:'SPIEGEL', title:'Analyse: Was die Entscheidung bedeutet', text:'Die Auswirkungen reichen über die heutige Nachricht hinaus.'},
-    {source:'taz', title:'Debatte um Wohnraum wird lauter', text:'Die Frage nach gerechter Verteilung bestimmt viele kommunale Diskussionen.'}
+    {source:'taz', title:'Debatte um Wohnraum wird lauter', text:'Die Frage nach gerechter Verteilung bestimmt viele kommunale Diskussionen.'},
+    {source:'BILD', title:'Neue Debatte im politischen Berlin', text:'Positionen prallen aufeinander – die Nachrichtenlage verdichtet sich im Minutentakt.'},
+    {source:'n-tv', title:'Regierung berät über nächste Schritte', text:'Aus den Gesprächen kommen fortlaufend neue Einschätzungen und Reaktionen.'},
+    {source:'WELT', title:'Europa im Fokus der aktuellen Debatte', text:'Entscheidungen in Politik und Wirtschaft werden aus unterschiedlichen Perspektiven bewertet.'},
+    {source:'Presseportal', title:'Verbände reagieren auf politische Pläne', text:'Mitteilungen, Forderungen und Stellungnahmen treffen fast gleichzeitig ein.'},
+    {source:'ZDFheute', title:'Aktuelle Lage: Was heute politisch wichtig ist', text:'Neue Entwicklungen werden eingeordnet, während weitere Meldungen folgen.'}
   ];
   const FEEDS = [
     {name:'Tagesschau', url:'https://www.tagesschau.de/infoservices/alle-meldungen-100~rss2.xml'},
@@ -122,7 +127,16 @@
     try { const Audio = window.AudioContext || window.webkitAudioContext; audioContext ||= new Audio(); const a = audioContext, g = a.createGain(); const first = a.createOscillator(), second = a.createOscillator(); first.type = second.type = 'sine'; first.frequency.setValueAtTime(880, a.currentTime); second.frequency.setValueAtTime(1320, a.currentTime + .075); g.gain.setValueAtTime(.038, a.currentTime); g.gain.exponentialRampToValueAtTime(.001, a.currentTime + .19); first.connect(g); second.connect(g); g.connect(a.destination); first.start(); first.stop(a.currentTime + .09); second.start(a.currentTime + .075); second.stop(a.currentTime + .2); } catch (_) {}
   }
   function flash(position) { light.setAttribute('position', position); light.setAttribute('intensity', 2.3); setTimeout(() => light.setAttribute('intensity', 0), 120); }
-  function sourceColor(source) { return source === 'Tagesschau' ? '#65d3ff' : source === 'SPIEGEL' ? '#ff808c' : '#f2bd58'; }
+  function sourceColor(source) {
+    return source === 'Tagesschau' ? '#65d3ff'
+      : source === 'ZDFheute' ? '#347ad1'
+      : source === 'BILD' ? '#e5252d'
+      : source === 'n-tv' ? '#dc2831'
+      : source === 'WELT' ? '#2c8fd0'
+      : source === 'Presseportal' ? '#7b56a8'
+      : source === 'SPIEGEL' ? '#ff808c'
+      : '#f2bd58';
+  }
   function randomNews() { return news[Math.floor(Math.random() * news.length)]; }
   function makeCard(item, pos, flight = null) {
     const entity = document.createElement('a-entity');
