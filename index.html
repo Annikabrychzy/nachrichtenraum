@@ -34,7 +34,7 @@
   <div id="signature" class="label">ANNIKABRYCHZY</div>
 
   <a-scene id="scene" renderer="antialias: true; colorManagement: true" background="color: #020b12" fog="type: exponential; color: #03131c; density: .035" vr-mode-ui="enabled: true" loading-screen="enabled: false">
-    <a-entity id="rig" position="0 1.65 0" smooth-locomotion>
+    <a-entity id="rig" position="0 1.65 0" smooth-locomotion joystick-turn>
       <a-camera id="camera" look-controls wasd-controls="acceleration: 18">
         <a-entity cursor="rayOrigin: mouse" raycaster="objects: .click-target" position="0 0 -1" geometry="primitive: ring; radiusInner: .008; radiusOuter: .014" material="color: #e3fbff; shader: flat"></a-entity>
       </a-camera>
@@ -92,13 +92,10 @@
     schema: { speed: {default: 2.1} },
     init() { this.direction = new THREE.Vector3(); this.forward = new THREE.Vector3(); this.right = new THREE.Vector3(); },
     tick(_, dt) {
-      const controllers = [document.querySelector('#left-hand'), document.querySelector('#right-hand')];
-      let axes = null;
-      for (const hand of controllers) {
-        const tracked = hand && hand.components['tracked-controls'];
-        const gamepad = tracked && tracked.controller && tracked.controller.gamepad;
-        if (gamepad && gamepad.axes && gamepad.axes.length >= 2) { axes = gamepad.axes; break; }
-      }
+      const hand = document.querySelector('#left-hand');
+      const tracked = hand && hand.components['tracked-controls'];
+      const gamepad = tracked && tracked.controller && tracked.controller.gamepad;
+      const axes = gamepad && gamepad.axes && gamepad.axes.length >= 2 ? gamepad.axes : null;
       if (!axes) return;
       const x = Math.abs(axes[0]) > .14 ? axes[0] : 0;
       const y = Math.abs(axes[1]) > .14 ? axes[1] : 0;
@@ -107,6 +104,18 @@
       this.right.crossVectors(this.forward, new THREE.Vector3(0, 1, 0)).normalize();
       this.direction.copy(this.forward).multiplyScalar(-y).addScaledVector(this.right, x).normalize();
       this.el.object3D.position.addScaledVector(this.direction, this.data.speed * dt / 1000);
+    }
+  });
+  AFRAME.registerComponent('joystick-turn', {
+    schema: { speed: {default: 105} },
+    tick(_, dt) {
+      const hand = document.querySelector('#right-hand');
+      const tracked = hand && hand.components['tracked-controls'];
+      const gamepad = tracked && tracked.controller && tracked.controller.gamepad;
+      if (!gamepad || !gamepad.axes || gamepad.axes.length < 2) return;
+      const x = Math.abs(gamepad.axes[0]) > .16 ? gamepad.axes[0] : 0;
+      if (!x) return;
+      this.el.object3D.rotation.y -= THREE.MathUtils.degToRad(x * this.data.speed * dt / 1000);
     }
   });
   AFRAME.registerComponent('face-player', {
