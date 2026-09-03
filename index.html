@@ -164,8 +164,8 @@
   function updateCount() { if (countEl) countEl.textContent = Math.max(0, cardCount) + ' MELDUNGEN'; }
   function rhythm() { const elapsed = (Date.now() - startTime) / 1000; let delay, amount;
     if (elapsed >= 15 && !escapeShown) { showEscape(); return; }
-    if (elapsed < 3) { phaseEl.textContent = 'ERSTE MELDUNGEN'; delay = 1350; amount = 1; }
-    else if (elapsed < 8) { phaseEl.textContent = 'DER STRUDEL BEGINNT'; delay = Math.max(250, 1050 - (elapsed - 3) * 160); amount = 1; }
+    if (elapsed < 5) { phaseEl.textContent = 'ERSTE MELDUNGEN'; delay = 2400; amount = 1; }
+    else if (elapsed < 10) { phaseEl.textContent = 'DER STRUDEL BEGINNT'; delay = Math.max(300, 1500 - (elapsed - 5) * 220); amount = 1; }
     else { phaseEl.textContent = 'SOFORTIGE ÜBERFLUTUNG'; delay = 120; amount = 4; }
     for (let i = 0; i < amount; i++) setTimeout(() => spawnNear({x: Math.sin(Math.random()*6.28)*7, y: 1+Math.random()*3, z: Math.cos(Math.random()*6.28)*7}), i * 65);
     sequenceTimer = setTimeout(rhythm, delay);
