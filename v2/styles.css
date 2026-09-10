@@ -238,33 +238,6 @@ h1 {
   transform: translate(-50%, 0);
 }
 
-.corner-signature {
-  position: fixed;
-  z-index: 32;
-  bottom: max(18px, env(safe-area-inset-bottom));
-  color: #dbe7ff;
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-  pointer-events: none;
-  text-shadow: 0 0 18px rgba(142, 184, 255, 0.42);
-}
-
-#corner-label-left {
-  left: max(18px, env(safe-area-inset-left));
-}
-
-#corner-label-right {
-  right: max(18px, env(safe-area-inset-right));
-}
-
-#start-screen.is-hidden ~ .corner-signature {
-  z-index: 11;
-  color: #7f91b2;
-  opacity: 0.82;
-}
-
 body.is-silent #hud,
 body.is-silent #pause-all,
 body.is-silent #desktop-help {
