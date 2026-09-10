@@ -47,6 +47,8 @@ const state = {
   closedCount: 0,
   testOffset: 0,
 };
+browserButton.disabled = false;
+vrButton.disabled = false;
 
 let messages = [];
 let cards;
@@ -94,7 +96,7 @@ function playSpawnSound(slot) {
 function spawnCard({ sound = true } = {}) {
   if (!cards || !messages.length || cards.size >= cards.max) return null;
   cameraEl.object3D.getWorldPosition(cameraPosition);
-  const slot = cards.acquire(randomMessage(), cameraPosition);
+  const slot = cards.acquire(randomMessage(), cameraPosition, performance.now(), state.phase || {});
   if (slot && sound) playSpawnSound(slot);
   updateMessageCount();
   return slot;
@@ -113,9 +115,17 @@ function closeCard(slot) {
   audio.close(slot.pitch, soundPosition);
   const sizeBeforeClose = cards.size;
   cards.release(slot);
-  cards.prepareReplacement(slot, Math.max(0, sizeBeforeClose + 1 - cards.max));
   state.closedCount += 1;
-  const created = spawnCard() ? 1 : 0;
+  const phaseKey = state.phase?.key || "slow";
+  const escalation = phaseKey === "overload" ? 5 : phaseKey === "medium" ? 3 : 1;
+  const closePressure = Math.min(6, Math.floor(state.closedCount / 2));
+  const desired = Math.min(cards.max, sizeBeforeClose + escalation + closePressure);
+  const needed = Math.max(1, desired - cards.size);
+  cards.makeSpace(needed);
+  let created = 0;
+  for (let count = 0; count < needed; count += 1) {
+    if (spawnCard()) created += 1;
+  }
   scene.dataset.closedCount = String(state.closedCount);
   scene.dataset.lastCloseSpawned = String(created);
   showToast(`GESCHLOSSEN · ${created} NEUE NEWS`);
@@ -222,7 +232,11 @@ async function enterPhase(index, phase) {
   swarmRoot.object3D.visible = true;
   vrHud.setAttribute("visible", scene.is("vr-mode"));
   vrPauseButton.classList.toggle("interactive", scene.is("vr-mode"));
-  for (let count = 0; count < phase.initial; count += 1) spawnCard({ sound: false });
+  for (let count = 0; count < phase.initial; count += 1) {
+    window.setTimeout(() => {
+      if (state.phaseIndex === index && !state.manualPaused) spawnCard({ sound: true });
+    }, Math.min(1400, count * (phase.key === "slow" ? 180 : phase.key === "medium" ? 70 : 18)));
+  }
   if (!state.manualPaused) await audio.resume();
   scene.dataset.audioState = audio.state;
 }
@@ -294,6 +308,12 @@ function updatePointers() {
   cameraEl.object3D.getWorldPosition(cameraPosition);
   updatePointer(leftController, leftPointer);
   updatePointer(rightController, rightPointer);
+}
+
+function pressCurrentTarget(controller) {
+  if (!cards || state.phase?.type === "pause") return;
+  const intersection = controller.components.raycaster?.intersections?.[0];
+  if (cards.pressIntersection(intersection, controller)) showToast("GEDRÜCKT");
 }
 
 function updateScene(delta, now, current) {
@@ -374,6 +394,7 @@ async function startExperience({ enterVR = false } = {}) {
       showToast("VR-START WURDE ABGEBROCHEN");
     }
   }
+  browserButton.textContent = "IM BROWSER GESTARTET";
 }
 
 async function initialize() {
@@ -385,7 +406,7 @@ async function initialize() {
   cards = new CardPool({
     THREE,
     root: cardsRoot,
-    max: 72,
+    max: 110,
     onToggle: toggleCard,
     onClose: closeCard,
   });
