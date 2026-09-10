@@ -1,8 +1,6 @@
 name: Import Nachrichtenraum v2
 
 on:
-  push:
-    branches: [main]
   workflow_dispatch:
 
 permissions:
