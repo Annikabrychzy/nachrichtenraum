@@ -119,8 +119,8 @@
           <h1 id="title">Nachrichtenraum</h1>
           <p class="intro">WebXR für Meta Quest. Beide Controller können einzelne Nachrichten anvisieren, anhalten und schließen.</p>
           <div class="actions">
-            <button id="vr-button" class="primary" type="button" disabled>IN VR STARTEN</button>
-            <button id="browser-button" type="button" disabled>IM BROWSER STARTEN</button>
+            <button id="vr-button" class="primary" type="button">IN VR STARTEN</button>
+            <button id="browser-button" type="button">IM BROWSER STARTEN</button>
             <button id="install-button" type="button" hidden>INSTALLIEREN</button>
           </div>
           <dl class="controls">
@@ -130,6 +130,7 @@
             <div><dt>X auf Kachel</dt><dd>schließen</dd></div>
           </dl>
           <p class="install-hint">Quest Browser: Seite öffnen und „In VR starten“ wählen. Optional im Browsermenü zum Startbildschirm hinzufügen.</p>
+          <a class="old-version" href="../">Version 1 öffnen</a>
         </div>
       </section>
 
@@ -140,6 +141,8 @@
 
       <button id="pause-all" type="button">ALLE ANHALTEN</button>
       <div id="desktop-help">KLICK: NEWS ANHALTEN · X: SCHLIESSEN · WASD: BEWEGEN</div>
+      <div id="corner-label-left" class="corner-signature">digitaler raum</div>
+      <div id="corner-label-right" class="corner-signature">Annika Brychzy</div>
       <div id="toast" role="status" aria-live="polite"></div>
     </main>
     <script type="module" src="./main.js"></script>
