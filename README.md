@@ -1,5 +1,7 @@
 # Nachrichtenraum VR
 
+➡️ **Fertige VR-Webseite:** [https://annikabrychzy.github.io/nachrichtenraum/v2/](https://annikabrychzy.github.io/nachrichtenraum/v2/)
+
 Ein interaktiver WebXR-Prototyp über Nachrichten-Overload.
 
 ## Erlebnis
