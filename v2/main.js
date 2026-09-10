@@ -29,6 +29,10 @@ const feedStatus = document.querySelector("#feed-status");
 const pauseAllButton = document.querySelector("#pause-all");
 const desktopHelp = document.querySelector("#desktop-help");
 const toastEl = document.querySelector("#toast");
+const exitRoot = document.querySelector("#exit-root");
+const exitOverlay = document.querySelector("#exit-overlay");
+const exitYesButton = document.querySelector("#exit-yes");
+const exitNoButton = document.querySelector("#exit-no");
 
 const AFRAME = window.AFRAME;
 const THREE = AFRAME.THREE;
@@ -46,6 +50,8 @@ const state = {
   rssCount: 0,
   closedCount: 0,
   testOffset: 0,
+  exitPromptVisible: false,
+  exitTunnel: false,
 };
 browserButton.disabled = false;
 vrButton.disabled = false;
@@ -58,6 +64,9 @@ let toastTimer;
 let initializationPromise;
 let snapLatch = false;
 let leftTurnLatch = false;
+let exitQuestionGroup;
+let neonTunnelGroup;
+const neonBars = [];
 
 const leftAxis = new THREE.Vector2();
 const cameraPosition = new THREE.Vector3();
@@ -70,6 +79,7 @@ const listenerForward = new THREE.Vector3();
 const listenerUp = new THREE.Vector3();
 const cameraQuaternion = new THREE.Quaternion();
 const soundPosition = new THREE.Vector3();
+const exitButtonTargets = new Map();
 
 const params = new URLSearchParams(location.search);
 const localTesting = location.hostname === "localhost" || location.hostname === "127.0.0.1";
@@ -203,6 +213,164 @@ function buildSwarm() {
   swarm = { group, pointMaterial, lineMaterial };
 }
 
+function makeText(value, position, width, color = "#ffffff", align = "center") {
+  const text = document.createElement("a-text");
+  text.setAttribute("value", value);
+  text.setAttribute("position", position);
+  text.setAttribute("width", width);
+  text.setAttribute("color", color);
+  text.setAttribute("align", align);
+  text.setAttribute("baseline", "center");
+  text.setAttribute("material", "depthTest: false");
+  return text;
+}
+
+function makeExitButton(id, label, x, color) {
+  const button = document.createElement("a-plane");
+  button.id = id;
+  button.classList.add("interactive", "exit-choice");
+  button.setAttribute("position", `${x} -0.34 0.018`);
+  button.setAttribute("width", "0.74");
+  button.setAttribute("height", "0.25");
+  button.setAttribute("material", `color: ${color}; shader: flat; transparent: true; opacity: 0.96`);
+  const text = makeText(label, "0 0 0.014", 1.4, "#ffffff");
+  button.appendChild(text);
+  return button;
+}
+
+function buildExitQuestion() {
+  if (exitQuestionGroup) return;
+  exitQuestionGroup = document.createElement("a-entity");
+  exitQuestionGroup.setAttribute("position", "0 1.65 -2.35");
+  const back = document.createElement("a-plane");
+  back.setAttribute("width", "2.7");
+  back.setAttribute("height", "1.35");
+  back.setAttribute("material", "color: #020716; shader: flat; transparent: true; opacity: 0.93");
+  const title = makeText("Wollen Sie den Raum verlassen?", "0 0.28 0.02", 2.25, "#ffffff");
+  const sub = makeText("Nach der Nachrichtenflut öffnet sich ein neuer Raum.", "0 0.04 0.022", 1.9, "#9db8ff");
+  const yes = makeExitButton("exit-choice-yes", "Ja", -0.46, "#ff1fb8");
+  const no = makeExitButton("exit-choice-no", "Nein", 0.46, "#123c8c");
+  yes.addEventListener("click", enterExitTunnel);
+  no.addEventListener("click", restartNewsCycle);
+  exitButtonTargets.set(yes, enterExitTunnel);
+  exitButtonTargets.set(no, restartNewsCycle);
+  exitQuestionGroup.append(back, title, sub, yes, no);
+  exitRoot.appendChild(exitQuestionGroup);
+}
+
+function showExitQuestion() {
+  if (state.exitPromptVisible || state.exitTunnel) return;
+  state.exitPromptVisible = true;
+  state.manualPaused = true;
+  phaseLabel.textContent = "ENDE · ENTSCHEIDUNG";
+  vrPhase.setAttribute("value", "ENDE · ENTSCHEIDUNG");
+  timer.textContent = "00:36";
+  cards.releaseAll();
+  cardsRoot.object3D.visible = false;
+  swarmRoot.object3D.visible = false;
+  vrHud.setAttribute("visible", scene.is("vr-mode"));
+  buildExitQuestion();
+  exitQuestionGroup.setAttribute("visible", true);
+  exitRoot.setAttribute("visible", true);
+  exitOverlay.hidden = scene.is("vr-mode");
+  pauseAllButton.classList.remove("is-visible");
+  desktopHelp.textContent = "Wähle Ja für den neuen Raum oder Nein zum Neustart.";
+  audio.plop(1.28, cameraPosition);
+  updateMessageCount();
+}
+
+function hideExitQuestion() {
+  state.exitPromptVisible = false;
+  if (exitQuestionGroup) exitQuestionGroup.setAttribute("visible", false);
+  exitRoot.setAttribute("visible", false);
+  exitOverlay.hidden = true;
+}
+
+function buildNeonTunnel() {
+  if (neonTunnelGroup) return;
+  neonTunnelGroup = new THREE.Group();
+  const colors = [0xff1fb8, 0xff3d00, 0xffd400, 0x00ff6a, 0x00d5ff, 0x335cff, 0x9b2cff];
+  for (let ring = 0; ring < 34; ring += 1) {
+    const z = -2.5 - ring * 0.42;
+    const radius = 0.7 + ring * 0.032;
+    for (let i = 0; i < 16; i += 1) {
+      if ((i + ring) % 3 === 0) continue;
+      const angle = (i / 16) * Math.PI * 2 + ring * 0.17;
+      const length = THREE.MathUtils.randFloat(0.36, 1.05);
+      const thickness = THREE.MathUtils.randFloat(0.018, 0.052);
+      const geometry = new THREE.BoxGeometry(thickness, length, 0.035);
+      const material = new THREE.MeshBasicMaterial({ color: colors[(i + ring) % colors.length], transparent: true, opacity: 0.86 });
+      const bar = new THREE.Mesh(geometry, material);
+      bar.position.set(Math.cos(angle) * radius, 1.62 + Math.sin(angle) * radius, z);
+      bar.rotation.z = angle;
+      bar.userData = { baseZ: z, speed: THREE.MathUtils.randFloat(0.55, 1.7), phase: Math.random() * Math.PI * 2 };
+      neonTunnelGroup.add(bar);
+      neonBars.push(bar);
+    }
+  }
+  const glowGeometry = new THREE.TorusGeometry(0.62, 0.018, 8, 96);
+  for (let ring = 0; ring < 22; ring += 1) {
+    const material = new THREE.MeshBasicMaterial({ color: colors[ring % colors.length], transparent: true, opacity: 0.35 });
+    const torus = new THREE.Mesh(glowGeometry, material);
+    torus.position.set(0, 1.62, -2.2 - ring * 0.54);
+    torus.userData = { baseZ: torus.position.z, speed: 0.9 + ring * 0.02, phase: ring };
+    neonTunnelGroup.add(torus);
+    neonBars.push(torus);
+  }
+  exitRoot.setObject3D("neonTunnel", neonTunnelGroup);
+}
+
+async function enterExitTunnel() {
+  hideExitQuestion();
+  state.exitTunnel = true;
+  state.running = true;
+  state.manualPaused = false;
+  document.body.classList.add("is-exit-tunnel");
+  phaseLabel.textContent = "NEUER RAUM";
+  vrPhase.setAttribute("value", "NEUER RAUM");
+  messageCount.textContent = "LICHTTUNNEL";
+  feedStatus.textContent = "RAUM VERLASSEN";
+  cards.releaseAll();
+  cardsRoot.object3D.visible = false;
+  swarmRoot.object3D.visible = false;
+  buildNeonTunnel();
+  if (exitQuestionGroup) exitQuestionGroup.setAttribute("visible", false);
+  exitRoot.setAttribute("visible", true);
+  exitOverlay.hidden = true;
+  pauseAllButton.classList.remove("is-visible");
+  desktopHelp.textContent = "Neuer Raum: Neon-Lichttunnel nach der Nachrichtenflut.";
+  await audio.resume();
+  audio.plop(1.5, cameraPosition);
+}
+
+async function restartNewsCycle() {
+  hideExitQuestion();
+  state.exitTunnel = false;
+  state.running = true;
+  state.manualPaused = false;
+  state.startedAt = performance.now();
+  state.pausedDuration = 0;
+  state.pauseStartedAt = 0;
+  state.phaseIndex = -1;
+  document.body.classList.remove("is-exit-tunnel");
+  cardsRoot.object3D.visible = true;
+  swarmRoot.object3D.visible = true;
+  pauseAllButton.classList.add("is-visible");
+  desktopHelp.textContent = "KLICK: NEWS ANHALTEN · X: SCHLIESSEN · WASD: BEWEGEN";
+  await audio.resume();
+  showToast("NEUSTART");
+}
+
+function updateNeonTunnel(delta, now) {
+  if (!state.exitTunnel || !neonTunnelGroup) return;
+  neonTunnelGroup.rotation.z = Math.sin(now * 0.00022) * 0.22;
+  for (const bar of neonBars) {
+    bar.position.z += delta * bar.userData.speed * 3.5;
+    if (bar.position.z > 1.2) bar.position.z = bar.userData.baseZ - 13.5;
+    if (bar.material) bar.material.opacity = 0.52 + Math.sin(now * 0.006 + bar.userData.phase) * 0.32;
+  }
+}
+
 function effectiveElapsed(now) {
   const currentPause = state.manualPaused ? now - state.pauseStartedAt : 0;
   return (now - state.startedAt - state.pausedDuration - currentPause) / 1000 + state.testOffset;
@@ -245,11 +413,15 @@ async function enterPhase(index, phase) {
 function updatePhase(now) {
   const elapsed = effectiveElapsed(now);
   const current = phaseAt(elapsed);
-  if (current.index !== state.phaseIndex) void enterPhase(current.index, current.phase);
-  const cycleTime = ((elapsed % cycleDuration) + cycleDuration) % cycleDuration;
+  const cycleTime = Math.min(elapsed, cycleDuration);
   const minutes = Math.floor(cycleTime / 60);
   const seconds = Math.floor(cycleTime % 60);
   timer.textContent = `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
+  if (current.complete) {
+    showExitQuestion();
+    return null;
+  }
+  if (current.index !== state.phaseIndex) void enterPhase(current.index, current.phase);
   return current;
 }
 
@@ -288,7 +460,7 @@ function updateAudioListener() {
 function updatePointer(controller, pointer) {
   const intersections = controller.components.raycaster?.intersections;
   const intersection = intersections?.[0];
-  if (!scene.is("vr-mode") || !intersection) {
+  if ((!scene.is("vr-mode") && !state.exitPromptVisible) || !intersection) {
     pointer.object3D.visible = false;
     return;
   }
@@ -299,7 +471,7 @@ function updatePointer(controller, pointer) {
 }
 
 function updatePointers() {
-  if (state.phase?.type === "pause") {
+  if (state.phase?.type === "pause" && !state.exitPromptVisible) {
     leftPointer.object3D.visible = false;
     rightPointer.object3D.visible = false;
     return;
@@ -310,8 +482,15 @@ function updatePointers() {
 }
 
 function pressCurrentTarget(controller) {
-  if (!cards || state.phase?.type === "pause") return;
   const intersection = controller.components.raycaster?.intersections?.[0];
+  if (state.exitPromptVisible && intersection?.object?.el) {
+    const action = exitButtonTargets.get(intersection.object.el);
+    if (action) {
+      void action();
+      return;
+    }
+  }
+  if (!cards || state.phase?.type === "pause") return;
   if (cards.pressIntersection(intersection, controller)) showToast("GEDRÜCKT");
 }
 
@@ -460,6 +639,8 @@ async function ensureInitialized() {
 browserButton.addEventListener("click", () => startExperience());
 vrButton.addEventListener("click", () => startExperience({ enterVR: true }));
 pauseAllButton.addEventListener("click", toggleAll);
+exitYesButton.addEventListener("click", enterExitTunnel);
+exitNoButton.addEventListener("click", restartNewsCycle);
 vrPauseButton.addEventListener("click", toggleAll);
 leftController.addEventListener("thumbstickmoved", onLeftAxis);
 rightController.addEventListener("thumbstickmoved", onRightAxis);
@@ -472,7 +653,7 @@ leftController.addEventListener("xbuttondown", toggleAll);
 
 scene.addEventListener("enter-vr", () => {
   document.body.classList.add("in-vr");
-  vrHud.setAttribute("visible", state.phase?.type !== "pause");
+  vrHud.setAttribute("visible", state.phase?.type !== "pause" || state.exitPromptVisible || state.exitTunnel);
   vrPauseButton.classList.toggle("interactive", state.phase?.type !== "pause");
   if (!state.running) void startExperience();
   setTimeout(() => vrHelp.setAttribute("visible", false), 9000);
@@ -538,8 +719,16 @@ AFRAME.registerComponent("nachrichtenraum-loop", {
       if (swarm) swarm.group.rotation.y = now * 0.000006;
       return;
     }
+    if (state.exitTunnel) {
+      updateLocomotion(delta);
+      updateAudioListener();
+      updateNeonTunnel(delta, now);
+      updatePointers();
+      return;
+    }
     const current = updatePhase(now);
     updatePointers();
+    if (!current) return;
     updateScene(delta, now, current);
   },
 });
