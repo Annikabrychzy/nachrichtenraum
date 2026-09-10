@@ -57,6 +57,7 @@ let deferredInstall;
 let toastTimer;
 let initializationPromise;
 let snapLatch = false;
+let leftTurnLatch = false;
 
 const leftAxis = new THREE.Vector2();
 const cameraPosition = new THREE.Vector3();
@@ -254,16 +255,14 @@ function updatePhase(now) {
 
 function updateLocomotion(delta) {
   if (!scene.is("vr-mode") || state.phase?.type === "pause") return;
-  const x = Math.abs(leftAxis.x) > 0.13 ? leftAxis.x : 0;
   const y = Math.abs(leftAxis.y) > 0.13 ? leftAxis.y : 0;
-  if (!x && !y) return;
+  if (!y) return;
   cameraEl.object3D.getWorldDirection(forward);
   forward.y = 0;
   forward.normalize();
   right.set(-forward.z, 0, forward.x).normalize();
   movement.set(0, 0, 0);
   movement.addScaledVector(forward, -y);
-  movement.addScaledVector(right, x);
   if (movement.lengthSq() > 1) movement.normalize();
   rig.object3D.position.addScaledVector(movement, delta * 1.35);
 }
@@ -362,7 +361,15 @@ async function toggleAll() {
 }
 
 function onLeftAxis(event) {
-  leftAxis.set(event.detail.x || 0, event.detail.y || 0);
+  const x = event.detail.x || 0;
+  const y = event.detail.y || 0;
+  leftAxis.set(0, y);
+  if (Math.abs(x) > 0.66 && !leftTurnLatch) {
+    leftTurnLatch = true;
+    snapTurn(Math.sign(x));
+  } else if (Math.abs(x) < 0.24) {
+    leftTurnLatch = false;
+  }
 }
 
 function onRightAxis(event) {
