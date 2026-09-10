@@ -53,7 +53,7 @@ function pulse(cursorEl, strength = 0.35, duration = 55) {
 }
 
 export function isCloseHit(uv) {
-  return Boolean(uv && uv.x > 0.8 && uv.y > 0.7);
+  return Boolean(uv && uv.x > 0.66 && uv.y > 0.56);
 }
 
 export class CardPool {
@@ -106,6 +106,8 @@ export class CardPool {
       pitch: 1,
       wave: 0,
       bornAt: 0,
+      pressedAt: 0,
+      motionKind: "float",
       message: null,
       raycast: mesh.raycast,
     };
@@ -128,6 +130,9 @@ export class CardPool {
   handleClick(slot, event) {
     if (!slot.active) return;
     event.stopPropagation();
+    const now = performance.now();
+    if (now - slot.pressedAt < 180) return;
+    slot.pressedAt = now;
     const uv = event.detail?.intersection?.uv;
     if (uv) this.root.dataset.lastUv = `${uv.x.toFixed(3)},${uv.y.toFixed(3)}`;
     const closes = isCloseHit(uv);
@@ -137,6 +142,19 @@ export class CardPool {
       return;
     }
     this.onToggle(slot);
+  }
+
+  pressIntersection(intersection, cursorEl) {
+    const slot = intersection?.object?.userData?.slot;
+    if (!slot?.active) return false;
+    const now = performance.now();
+    if (now - slot.pressedAt < 180) return false;
+    slot.pressedAt = now;
+    const closes = isCloseHit(intersection.uv);
+    pulse(cursorEl, closes ? 0.65 : 0.32, 65);
+    if (closes) this.onClose(slot);
+    else this.onToggle(slot);
+    return true;
   }
 
   draw(slot, message) {
@@ -186,15 +204,18 @@ export class CardPool {
     );
   }
 
-  acquire(message, cameraPosition, now = performance.now()) {
+  acquire(message, cameraPosition, now = performance.now(), phase = {}) {
     let slot = this.slots.find((candidate) => !candidate.active);
     if (!slot && this.slots.length < this.max) slot = this.createSlot();
     if (!slot) return null;
     slot.active = true;
     slot.paused = false;
     slot.message = message;
-    slot.pitch = this.THREE.MathUtils.randFloat(0.72, 1.62);
+    slot.pitch = this.THREE.MathUtils.randFloat(0.84, 1.18);
     slot.wave = Math.random() * Math.PI * 2;
+    const motion = phase.motion || 0.6;
+    const movingChance = Math.min(0.86, 0.18 + motion * 0.16);
+    slot.motionKind = Math.random() < movingChance ? (motion > 3 && Math.random() < 0.7 ? "flyby" : "wave") : "still";
     slot.bornAt = now;
     slot.hoveredBy.clear();
     this.draw(slot, message);
@@ -203,10 +224,20 @@ export class CardPool {
     slot.entity.object3D.lookAt(cameraPosition);
     slot.entity.object3D.rotateZ(this.THREE.MathUtils.randFloatSpread(0.12));
     slot.baseScale = this.THREE.MathUtils.randFloat(0.92, 1.08);
-    slot.entity.object3D.scale.setScalar(slot.baseScale);
+    slot.entity.object3D.scale.setScalar(slot.baseScale * 0.12);
     const radial = position.clone().sub(cameraPosition).normalize();
-    slot.velocity.set(-radial.z, this.THREE.MathUtils.randFloatSpread(0.24), radial.x).normalize();
-    slot.velocity.multiplyScalar(this.THREE.MathUtils.randFloat(0.035, 0.1));
+    if (slot.motionKind === "flyby") {
+      slot.velocity.copy(radial).multiplyScalar(-this.THREE.MathUtils.randFloat(0.16, 0.34));
+      slot.velocity.x += this.THREE.MathUtils.randFloatSpread(0.12);
+      slot.velocity.y += this.THREE.MathUtils.randFloatSpread(0.1);
+      slot.velocity.z += this.THREE.MathUtils.randFloatSpread(0.12);
+    } else if (slot.motionKind === "wave") {
+      slot.velocity.set(-radial.z, this.THREE.MathUtils.randFloatSpread(0.34), radial.x).normalize();
+      slot.velocity.multiplyScalar(this.THREE.MathUtils.randFloat(0.055, 0.16));
+    } else {
+      slot.velocity.set(-radial.z, this.THREE.MathUtils.randFloatSpread(0.1), radial.x).normalize();
+      slot.velocity.multiplyScalar(this.THREE.MathUtils.randFloat(0.006, 0.024));
+    }
     slot.entity.object3D.visible = true;
     slot.mesh.raycast = slot.raycast;
     slot.entity.classList.add("interactive");
@@ -283,14 +314,20 @@ export class CardPool {
     for (const slot of this.active) {
       if (!slot.paused) {
         const age = (now - slot.bornAt) / 1000;
-        slot.entity.object3D.position.addScaledVector(slot.velocity, delta * intensity);
-        slot.entity.object3D.position.y += Math.sin(age * 1.15 + slot.wave) * 0.0014 * intensity;
-        if (index % 5 === Math.floor(now / 220) % 5) {
+        const pop = Math.min(1, age / 0.34);
+        const easeOutBack = 1 + 1.7 * Math.pow(pop - 1, 3) + 0.7 * Math.pow(pop - 1, 2);
+        slot.entity.object3D.scale.setScalar((slot.baseScale || 1) * Math.max(0.12, easeOutBack));
+        if (slot.motionKind !== "still") {
+          slot.entity.object3D.position.addScaledVector(slot.velocity, delta * intensity);
+        }
+        const waveStrength = slot.motionKind === "still" ? 0.00045 : slot.motionKind === "flyby" ? 0.0048 : 0.0026;
+        slot.entity.object3D.position.y += Math.sin(age * (1.2 + intensity * 0.22) + slot.wave) * waveStrength * intensity;
+        if (index % 3 === Math.floor(now / 160) % 3) {
           slot.entity.object3D.lookAt(cameraPosition);
-          slot.entity.object3D.rotateZ(Math.sin(slot.wave + age * 0.16) * 0.035);
+          slot.entity.object3D.rotateZ(Math.sin(slot.wave + age * 0.5) * 0.03 * intensity);
         }
         const distance = slot.entity.object3D.position.distanceTo(cameraPosition);
-        if (distance > 7.2 || distance < 1.35) {
+        if (distance > 7.8 || distance < 0.82) {
           slot.entity.object3D.position.copy(this.randomPosition(cameraPosition));
           slot.entity.object3D.lookAt(cameraPosition);
         }
