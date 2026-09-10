@@ -33,12 +33,12 @@ export const phases = [
     label: "PHASE III · CHAOS",
     duration: 10,
     initial: 36,
-    target: 96,
+    target: 196,
     intensity: 5.2,
     motion: 4.8,
     startRate: 75,
     endRate: 16,
-    batch: 10,
+    batch: 16,
   },
 ];
 
