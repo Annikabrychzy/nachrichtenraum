@@ -44,20 +44,29 @@ export class AudioEngine {
   }
 
   plop(pitch = 1, position) {
+    this.notify(pitch, position);
+  }
+
+  notify(pitch = 1, position) {
     if (!this.context || this.context.state !== "running") return;
     const now = this.context.currentTime;
-    const oscillator = this.context.createOscillator();
-    const gain = this.context.createGain();
-    oscillator.type = Math.random() > 0.5 ? "sine" : "triangle";
-    oscillator.frequency.setValueAtTime(205 * pitch, now);
-    oscillator.frequency.exponentialRampToValueAtTime(78 * pitch, now + 0.095);
-    gain.gain.setValueAtTime(0.0001, now);
-    gain.gain.exponentialRampToValueAtTime(0.11, now + 0.007);
-    gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.11);
-    oscillator.connect(gain);
-    gain.connect(this.outputAt(position));
-    oscillator.start(now);
-    oscillator.stop(now + 0.12);
+    const output = this.outputAt(position);
+    const notes = [880, 1174];
+    notes.forEach((frequency, index) => {
+      const start = now + index * 0.055;
+      const oscillator = this.context.createOscillator();
+      const gain = this.context.createGain();
+      oscillator.type = "sine";
+      oscillator.frequency.setValueAtTime(frequency * pitch, start);
+      oscillator.frequency.exponentialRampToValueAtTime(frequency * 1.08 * pitch, start + 0.035);
+      gain.gain.setValueAtTime(0.0001, start);
+      gain.gain.exponentialRampToValueAtTime(0.15, start + 0.008);
+      gain.gain.exponentialRampToValueAtTime(0.0001, start + 0.16);
+      oscillator.connect(gain);
+      gain.connect(output);
+      oscillator.start(start);
+      oscillator.stop(start + 0.18);
+    });
   }
 
   close(pitch = 1, position) {
