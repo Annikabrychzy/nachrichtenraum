@@ -1,0 +1,135 @@
+name: Import Nachrichtenraum v2
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  import-v2:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout this repository
+        uses: actions/checkout@v4
+
+      - name: Checkout maicoding Nachrichtenraum
+        uses: actions/checkout@v4
+        with:
+          repository: maicoding/nachrichtenraum
+          path: upstream
+
+      - name: Copy the VR room and Annika changes
+        run: |
+          mkdir -p v2 vendor src public/v2 public/vendor public/src
+          cp -R upstream/v2/. v2/
+          cp -R upstream/v2/. public/v2/
+          cp -R upstream/vendor/. vendor/
+          cp -R upstream/vendor/. public/vendor/
+          cp upstream/src/data.js src/data.js
+          cp upstream/src/data.js public/src/data.js
+          cp upstream/feeds.json feeds.json
+          cp upstream/feeds.json public/feeds.json
+          cp upstream/.nojekyll .nojekyll
+          python - <<'PY'
+          from pathlib import Path
+
+          for name in ('v2/main.js', 'public/v2/main.js'):
+              path = Path(name)
+              text = path.read_text(encoding='utf-8')
+              text = text.replace('const created = [spawnCard(), spawnCard()].filter(Boolean).length;', 'const created = spawnCard() ? 1 : 0;')
+              path.write_text(text, encoding='utf-8')
+
+          timeline = '''export const phases = [
+            {
+              type: "active",
+              key: "slow",
+              label: "PHASE I · LANGSAM",
+              duration: 5,
+              initial: 5,
+              target: 12,
+              intensity: 0.55,
+              startRate: 1200,
+              endRate: 620,
+              batch: 1,
+            },
+            { type: "pause", key: "silence-1", label: "PAUSE", duration: 2 },
+            {
+              type: "active",
+              key: "medium",
+              label: "PHASE II · VIELE",
+              duration: 5,
+              initial: 18,
+              target: 45,
+              intensity: 1.45,
+              startRate: 260,
+              endRate: 95,
+              batch: 3,
+            },
+            { type: "pause", key: "silence-2", label: "PAUSE", duration: 2 },
+            {
+              type: "active",
+              key: "overload",
+              label: "PHASE III · ÜBERFLUTUNG",
+              duration: 5,
+              initial: 48,
+              target: 72,
+              intensity: 4.2,
+              startRate: 60,
+              endRate: 18,
+              batch: 8,
+            },
+          ];
+
+          export const cycleDuration = phases.reduce((sum, phase) => sum + phase.duration, 0);
+
+          export function phaseAt(elapsedSeconds) {
+            let cycleTime = ((elapsedSeconds % cycleDuration) + cycleDuration) % cycleDuration;
+            for (let index = 0; index < phases.length; index += 1) {
+              const phase = phases[index];
+              if (cycleTime < phase.duration) {
+                return { index, phase, progress: cycleTime / phase.duration, cycleTime };
+              }
+              cycleTime -= phase.duration;
+            }
+            return { index: 0, phase: phases[0], progress: 0, cycleTime: 0 };
+          }
+          '''
+          for name in ('v2/src/timeline.js', 'public/v2/src/timeline.js'):
+              Path(name).write_text(timeline, encoding='utf-8')
+          PY
+          cat > index.html <<'HTML'
+          <!doctype html>
+          <html lang="de">
+            <head>
+              <meta charset="utf-8" />
+              <meta name="viewport" content="width=device-width, initial-scale=1" />
+              <meta http-equiv="refresh" content="0; url=./v2/" />
+              <title>Nachrichtenraum</title>
+              <style>
+                html, body { height: 100%; margin: 0; background: #05070c; color: white; font-family: system-ui, sans-serif; display: grid; place-items: center; }
+                a { color: #9ee7ff; }
+              </style>
+            </head>
+            <body>
+              <main>
+                <h1>Nachrichtenraum</h1>
+                <p><a href="./v2/">In den Raum gehen</a></p>
+              </main>
+            </body>
+          </html>
+          HTML
+
+      - name: Commit imported room
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add .
+          if git diff --cached --quiet; then
+            echo "Nothing to import."
+          else
+            git commit -m "Import Nachrichtenraum v2 with Annika changes"
+            git push
+          fi
