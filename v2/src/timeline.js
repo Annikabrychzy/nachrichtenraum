@@ -45,7 +45,8 @@ export const phases = [
 export const cycleDuration = phases.reduce((sum, phase) => sum + phase.duration, 0);
 
 export function phaseAt(elapsedSeconds) {
-  let cycleTime = ((elapsedSeconds % cycleDuration) + cycleDuration) % cycleDuration;
+  if (elapsedSeconds >= cycleDuration) return { index: phases.length, phase: null, progress: 1, cycleTime: cycleDuration, complete: true };
+  let cycleTime = Math.max(0, elapsedSeconds);
   for (let index = 0; index < phases.length; index += 1) {
     const phase = phases[index];
     if (cycleTime < phase.duration) {
