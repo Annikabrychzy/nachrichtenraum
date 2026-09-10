@@ -376,6 +376,9 @@ function onRightAxis(event) {
 }
 
 async function startExperience({ enterVR = false } = {}) {
+  browserButton.disabled = true;
+  vrButton.disabled = true;
+  browserButton.textContent = "STARTE ...";
   await ensureInitialized();
   await audio.start();
   if (!state.running) {
@@ -453,6 +456,10 @@ pauseAllButton.addEventListener("click", toggleAll);
 vrPauseButton.addEventListener("click", toggleAll);
 leftController.addEventListener("thumbstickmoved", onLeftAxis);
 rightController.addEventListener("thumbstickmoved", onRightAxis);
+leftController.addEventListener("triggerdown", () => pressCurrentTarget(leftController));
+rightController.addEventListener("triggerdown", () => pressCurrentTarget(rightController));
+leftController.addEventListener("thumbstickdown", () => pressCurrentTarget(leftController));
+rightController.addEventListener("thumbstickdown", () => pressCurrentTarget(rightController));
 rightController.addEventListener("abuttondown", toggleAll);
 leftController.addEventListener("xbuttondown", toggleAll);
 
