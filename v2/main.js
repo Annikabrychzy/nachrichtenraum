@@ -66,6 +66,7 @@ let snapLatch = false;
 let leftTurnLatch = false;
 let exitQuestionGroup;
 let neonTunnelGroup;
+let exitRoomButton;
 const neonBars = [];
 
 const leftAxis = new THREE.Vector2();
@@ -290,33 +291,49 @@ function buildNeonTunnel() {
   if (neonTunnelGroup) return;
   neonTunnelGroup = new THREE.Group();
   const colors = [0xff1fb8, 0xff3d00, 0xffd400, 0x00ff6a, 0x00d5ff, 0x335cff, 0x9b2cff];
-  for (let ring = 0; ring < 34; ring += 1) {
-    const z = -2.5 - ring * 0.42;
-    const radius = 0.7 + ring * 0.032;
-    for (let i = 0; i < 16; i += 1) {
-      if ((i + ring) % 3 === 0) continue;
-      const angle = (i / 16) * Math.PI * 2 + ring * 0.17;
-      const length = THREE.MathUtils.randFloat(0.36, 1.05);
-      const thickness = THREE.MathUtils.randFloat(0.018, 0.052);
-      const geometry = new THREE.BoxGeometry(thickness, length, 0.035);
-      const material = new THREE.MeshBasicMaterial({ color: colors[(i + ring) % colors.length], transparent: true, opacity: 0.86 });
-      const bar = new THREE.Mesh(geometry, material);
-      bar.position.set(Math.cos(angle) * radius, 1.62 + Math.sin(angle) * radius, z);
-      bar.rotation.z = angle;
-      bar.userData = { baseZ: z, speed: THREE.MathUtils.randFloat(0.55, 1.7), phase: Math.random() * Math.PI * 2 };
-      neonTunnelGroup.add(bar);
-      neonBars.push(bar);
-    }
+  for (let i = 0; i < 150; i += 1) {
+    const radius = THREE.MathUtils.randFloat(2.2, 8.8);
+    const angle = Math.random() * Math.PI * 2;
+    const height = THREE.MathUtils.randFloat(0.35, 3.35);
+    const length = THREE.MathUtils.randFloat(0.36, 1.3);
+    const thickness = THREE.MathUtils.randFloat(0.018, 0.07);
+    const geometry = new THREE.BoxGeometry(thickness, length, 0.035);
+    const material = new THREE.MeshBasicMaterial({ color: colors[i % colors.length], transparent: true, opacity: 0.82 });
+    const bar = new THREE.Mesh(geometry, material);
+    bar.position.set(Math.cos(angle) * radius, height, Math.sin(angle) * radius);
+    bar.rotation.set(THREE.MathUtils.randFloatSpread(0.5), THREE.MathUtils.randFloatSpread(0.5), angle + Math.PI / 2);
+    bar.userData = {
+      radius,
+      angle,
+      height,
+      spin: THREE.MathUtils.randFloat(0.08, 0.36) * (Math.random() > 0.5 ? 1 : -1),
+      bob: THREE.MathUtils.randFloat(0.04, 0.18),
+      phase: Math.random() * Math.PI * 2,
+    };
+    neonTunnelGroup.add(bar);
+    neonBars.push(bar);
   }
-  const glowGeometry = new THREE.TorusGeometry(0.62, 0.018, 8, 96);
-  for (let ring = 0; ring < 22; ring += 1) {
-    const material = new THREE.MeshBasicMaterial({ color: colors[ring % colors.length], transparent: true, opacity: 0.35 });
-    const torus = new THREE.Mesh(glowGeometry, material);
-    torus.position.set(0, 1.62, -2.2 - ring * 0.54);
-    torus.userData = { baseZ: torus.position.z, speed: 0.9 + ring * 0.02, phase: ring };
+  for (let ring = 0; ring < 12; ring += 1) {
+    const geometry = new THREE.TorusGeometry(1.5 + ring * 0.52, 0.014, 8, 128);
+    const material = new THREE.MeshBasicMaterial({ color: colors[ring % colors.length], transparent: true, opacity: 0.22 });
+    const torus = new THREE.Mesh(geometry, material);
+    torus.position.set(0, 1.58, 0);
+    torus.rotation.x = Math.PI / 2 + THREE.MathUtils.randFloatSpread(0.12);
+    torus.userData = { spin: THREE.MathUtils.randFloat(0.025, 0.08), phase: ring };
     neonTunnelGroup.add(torus);
     neonBars.push(torus);
   }
+  exitRoomButton = document.createElement("a-plane");
+  exitRoomButton.id = "exit-room-button";
+  exitRoomButton.classList.add("interactive", "exit-choice");
+  exitRoomButton.setAttribute("position", "1.08 2.08 -2.15");
+  exitRoomButton.setAttribute("width", "0.9");
+  exitRoomButton.setAttribute("height", "0.22");
+  exitRoomButton.setAttribute("material", "color: #ff1fb8; shader: flat; transparent: true; opacity: 0.94; depthTest: false");
+  exitRoomButton.appendChild(makeText("Raum verlassen", "0 0 0.014", 1.25, "#ffffff"));
+  exitRoomButton.addEventListener("click", returnToStartScreen);
+  exitButtonTargets.set(exitRoomButton, returnToStartScreen);
+  exitRoot.appendChild(exitRoomButton);
   exitRoot.setObject3D("neonTunnel", neonTunnelGroup);
 }
 
@@ -363,12 +380,46 @@ async function restartNewsCycle() {
 
 function updateNeonTunnel(delta, now) {
   if (!state.exitTunnel || !neonTunnelGroup) return;
-  neonTunnelGroup.rotation.z = Math.sin(now * 0.00022) * 0.22;
+  neonTunnelGroup.rotation.y += delta * 0.045;
   for (const bar of neonBars) {
-    bar.position.z += delta * bar.userData.speed * 3.5;
-    if (bar.position.z > 1.2) bar.position.z = bar.userData.baseZ - 13.5;
-    if (bar.material) bar.material.opacity = 0.52 + Math.sin(now * 0.006 + bar.userData.phase) * 0.32;
+    if (bar.geometry?.type === "BoxGeometry") {
+      bar.userData.angle += delta * bar.userData.spin;
+      bar.position.x = Math.cos(bar.userData.angle) * bar.userData.radius;
+      bar.position.z = Math.sin(bar.userData.angle) * bar.userData.radius;
+      bar.position.y = bar.userData.height + Math.sin(now * 0.0012 + bar.userData.phase) * bar.userData.bob;
+      bar.rotation.y += delta * 0.18;
+    } else {
+      bar.rotation.z += delta * bar.userData.spin;
+    }
+    if (bar.material) bar.material.opacity = 0.5 + Math.sin(now * 0.002 + bar.userData.phase) * 0.28;
   }
+}
+
+function returnToStartScreen() {
+  hideExitQuestion();
+  state.exitTunnel = false;
+  state.running = false;
+  state.manualPaused = false;
+  state.phaseIndex = -1;
+  state.phase = null;
+  state.startedAt = 0;
+  state.pausedDuration = 0;
+  state.pauseStartedAt = 0;
+  leftAxis.set(0, 0);
+  document.body.classList.remove("is-exit-tunnel", "is-silent");
+  exitRoot.setAttribute("visible", false);
+  cards.releaseAll();
+  cardsRoot.object3D.visible = false;
+  swarmRoot.object3D.visible = false;
+  startScreen.classList.remove("is-hidden");
+  hud.classList.remove("is-visible");
+  pauseAllButton.classList.remove("is-visible", "is-paused");
+  desktopHelp.classList.remove("is-visible");
+  phaseLabel.textContent = "BEREIT";
+  vrPhase.setAttribute("value", "BEREIT");
+  timer.textContent = "00:00";
+  updateMessageCount();
+  audio.suspend();
 }
 
 function effectiveElapsed(now) {
@@ -426,7 +477,7 @@ function updatePhase(now) {
 }
 
 function updateLocomotion(delta) {
-  if (!scene.is("vr-mode") || state.phase?.type === "pause") return;
+  if (!scene.is("vr-mode") || (state.phase?.type === "pause" && !state.exitTunnel)) return;
   const y = Math.abs(leftAxis.y) > 0.13 ? leftAxis.y : 0;
   if (!y) return;
   cameraEl.object3D.getWorldDirection(forward);
@@ -483,7 +534,7 @@ function updatePointers() {
 
 function pressCurrentTarget(controller) {
   const intersection = controller.components.raycaster?.intersections?.[0];
-  if (state.exitPromptVisible && intersection?.object?.el) {
+  if ((state.exitPromptVisible || state.exitTunnel) && intersection?.object?.el) {
     const action = exitButtonTargets.get(intersection.object.el);
     if (action) {
       void action();
@@ -654,7 +705,7 @@ leftController.addEventListener("xbuttondown", toggleAll);
 scene.addEventListener("enter-vr", () => {
   document.body.classList.add("in-vr");
   vrHud.setAttribute("visible", state.phase?.type !== "pause" || state.exitPromptVisible || state.exitTunnel);
-  vrPauseButton.classList.toggle("interactive", state.phase?.type !== "pause");
+  vrPauseButton.classList.toggle("interactive", state.phase?.type !== "pause" && !state.exitTunnel);
   if (!state.running) void startExperience();
   setTimeout(() => vrHelp.setAttribute("visible", false), 9000);
 });
