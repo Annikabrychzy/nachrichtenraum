@@ -409,7 +409,7 @@ async function initialize() {
   cards = new CardPool({
     THREE,
     root: cardsRoot,
-    max: 110,
+    max: 220,
     onToggle: toggleCard,
     onClose: closeCard,
   });
