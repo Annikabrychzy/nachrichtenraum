@@ -53,7 +53,7 @@ function pulse(cursorEl, strength = 0.35, duration = 55) {
 }
 
 export function isCloseHit(uv) {
-  return Boolean(uv && uv.x > 0.66 && uv.y > 0.56);
+  return Boolean(uv);
 }
 
 export class CardPool {
@@ -136,12 +136,8 @@ export class CardPool {
     const uv = event.detail?.intersection?.uv;
     if (uv) this.root.dataset.lastUv = `${uv.x.toFixed(3)},${uv.y.toFixed(3)}`;
     const closes = isCloseHit(uv);
-    pulse(event.detail?.cursorEl, closes ? 0.65 : 0.32, 65);
-    if (closes) {
-      this.onClose(slot);
-      return;
-    }
-    this.onToggle(slot);
+    pulse(event.detail?.cursorEl, 0.65, 65);
+    if (closes) this.onClose(slot);
   }
 
   pressIntersection(intersection, cursorEl) {
@@ -151,9 +147,8 @@ export class CardPool {
     if (now - slot.pressedAt < 180) return false;
     slot.pressedAt = now;
     const closes = isCloseHit(intersection.uv);
-    pulse(cursorEl, closes ? 0.65 : 0.32, 65);
+    pulse(cursorEl, 0.65, 65);
     if (closes) this.onClose(slot);
-    else this.onToggle(slot);
     return true;
   }
 
