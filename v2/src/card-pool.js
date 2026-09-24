@@ -1,21 +1,34 @@
 const categoryColors = {
-  POLITIK: "#133e75",
-  INNENPOLITIK: "#173f78",
-  AUSLANDSPOLITIK: "#1a3764",
-  AUSLAND: "#1a3764",
-  "WIRTSCHAFT & PREISE": "#0f4b6d",
-  WIRTSCHAFT: "#0f4b6d",
-  MIETEN: "#294a76",
-  RENTE: "#3a4670",
-  "GESUNDHEIT & PSYCHE": "#1b5368",
-  GESUNDHEIT: "#1b5368",
-  "KLIMA & UMWELT": "#18556a",
-  KLIMA: "#18556a",
-  STUDIUM: "#32477b",
-  "KARRIERE & STUDIUM": "#2b4b73",
-  KARRIERE: "#2b4b73",
-  NACHRICHTEN: "#173e6d",
-  NEWS: "#173e6d",
+  POLITIK: "#166534",
+  INNENPOLITIK: "#15803d",
+  AUSLANDSPOLITIK: "#167a46",
+  AUSLAND: "#167a46",
+  "WIRTSCHAFT & PREISE": "#0f766e",
+  WIRTSCHAFT: "#0f766e",
+  MIETEN: "#16a34a",
+  RENTE: "#22c55e",
+  "GESUNDHEIT & PSYCHE": "#14b8a6",
+  GESUNDHEIT: "#14b8a6",
+  "KLIMA & UMWELT": "#65a30d",
+  KLIMA: "#65a30d",
+  STUDIUM: "#4d7c0f",
+  "KARRIERE & STUDIUM": "#15803d",
+  KARRIERE: "#15803d",
+  NACHRICHTEN: "#16a34a",
+  NEWS: "#16a34a",
+  WHATSAPP: "#25d366",
+  PUSH: "#22c55e",
+  AUFMERKSAMKEIT: "#25d366",
+};
+
+const appIcons = {
+  WHATSAPP: { icon: "☎", color: "#25d366", label: "WhatsApp" },
+  INSTAGRAM: { icon: "◎", color: "#d946ef", label: "Instagram" },
+  TIKTOK: { icon: "♪", color: "#111827", label: "TikTok" },
+  YOUTUBE: { icon: "▶", color: "#ef4444", label: "YouTube" },
+  SNAPCHAT: { icon: "☻", color: "#facc15", label: "Snapchat" },
+  DISCORD: { icon: "☾", color: "#5865f2", label: "Discord" },
+  NEWS: { icon: "!", color: "#16a34a", label: "Wichtige Nachricht" },
 };
 
 function wrapText(context, value, maxWidth, maxLines) {
@@ -154,36 +167,77 @@ export class CardPool {
 
   draw(slot, message) {
     const { context } = slot;
-    const accent = categoryColors[message.category] || categoryColors.NEWS;
-    context.fillStyle = "#ffffff";
+    const source = String(message.source || "NEWS").toUpperCase();
+    const category = String(message.category || "NEWS").toUpperCase();
+    const appKey = Object.keys(appIcons).find((key) => source.includes(key) || category.includes(key)) || "NEWS";
+    const app = appIcons[appKey];
+    const accent = app.color || categoryColors[message.category] || categoryColors.NEWS;
+
+    context.clearRect(0, 0, 512, 256);
+    context.fillStyle = "#edfdf4";
     context.fillRect(0, 0, 512, 256);
+
+    context.shadowColor = "rgba(6, 95, 70, 0.24)";
+    context.shadowBlur = 18;
+    context.shadowOffsetY = 8;
+    context.fillStyle = "#ffffff";
+    context.beginPath();
+    context.roundRect(18, 18, 476, 220, 34);
+    context.fill();
+    context.shadowColor = "transparent";
+    context.shadowBlur = 0;
+    context.shadowOffsetY = 0;
+
     context.fillStyle = accent;
-    context.fillRect(0, 0, 14, 256);
-    context.fillRect(14, 0, 498, 13);
-    context.fillStyle = "#080d17";
-    context.fillRect(449, 18, 46, 46);
-    context.strokeStyle = "#ffffff";
+    context.beginPath();
+    context.roundRect(34, 34, 50, 50, 14);
+    context.fill();
+    context.fillStyle = "#ffffff";
+    context.font = "700 27px Arial";
+    context.textAlign = "center";
+    context.textBaseline = "middle";
+    context.fillText(app.icon, 59, 60);
+    context.textAlign = "left";
+    context.textBaseline = "alphabetic";
+
+    context.fillStyle = "#0f172a";
+    context.font = "700 15px Arial";
+    context.fillText(app.label, 98, 55);
+    context.fillStyle = "#64748b";
+    context.font = "600 13px Arial";
+    context.fillText("jetzt · wichtige Mitteilung", 98, 76);
+
+    context.fillStyle = "#ecfdf5";
+    context.beginPath();
+    context.roundRect(436, 31, 40, 40, 13);
+    context.fill();
+    context.strokeStyle = "#16a34a";
     context.lineWidth = 4;
     context.beginPath();
-    context.moveTo(462, 31);
-    context.lineTo(482, 51);
-    context.moveTo(482, 31);
-    context.lineTo(462, 51);
+    context.moveTo(448, 43);
+    context.lineTo(464, 59);
+    context.moveTo(464, 43);
+    context.lineTo(448, 59);
     context.stroke();
-    context.fillStyle = "#1a3156";
-    context.font = "700 14px Arial";
-    context.fillText(`${message.source} · ${message.category}`, 34, 47);
-    context.fillStyle = "#070a0f";
-    context.font = "700 27px Arial";
-    const titleLines = wrapText(context, message.title, 398, 3);
-    titleLines.forEach((line, index) => context.fillText(line, 34, 87 + index * 30));
-    context.fillStyle = "#333946";
+
+    context.fillStyle = "#07120b";
+    context.font = "700 25px Arial";
+    const titleLines = wrapText(context, message.title, 404, 3);
+    titleLines.forEach((line, index) => context.fillText(line, 34, 116 + index * 29));
+
+    context.fillStyle = "#334155";
     context.font = "400 16px Arial";
-    const excerptLines = wrapText(context, message.excerpt, 440, 2);
-    const excerptY = 103 + titleLines.length * 30;
+    const excerptLines = wrapText(context, message.excerpt, 420, 2);
+    const excerptY = 130 + titleLines.length * 29;
     excerptLines.forEach((line, index) => context.fillText(line, 34, excerptY + index * 21));
-    context.fillStyle = accent;
-    context.fillRect(34, 232, 108, 5);
+
+    context.fillStyle = "rgba(34, 197, 94, 0.16)";
+    context.beginPath();
+    context.roundRect(34, 214, 164, 18, 9);
+    context.fill();
+    context.fillStyle = "#15803d";
+    context.font = "700 11px Arial";
+    context.fillText(`${message.source} · ${message.category}`.slice(0, 38), 44, 227);
     slot.texture.needsUpdate = true;
   }
 
