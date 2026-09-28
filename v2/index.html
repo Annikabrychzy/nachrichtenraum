@@ -30,6 +30,7 @@
         </a-entity>
         <a-entity id="data-swarm"></a-entity>
         <a-entity id="news-root"></a-entity>
+        <a-entity id="exit-root" visible="false"></a-entity>
         <a-entity id="left-pointer" visible="false" geometry="primitive: triangle; vertexA: 0 0.022 0; vertexB: -0.016 -0.014 0; vertexC: 0.016 -0.014 0" material="color: #8eb8ff; shader: flat; side: double; depthTest: false"></a-entity>
         <a-entity id="right-pointer" visible="false" geometry="primitive: triangle; vertexA: 0 0.022 0; vertexB: -0.016 -0.014 0; vertexC: 0.016 -0.014 0" material="color: #ffffff; shader: flat; side: double; depthTest: false"></a-entity>
         <a-entity id="mouse-cursor" cursor="rayOrigin: mouse; fuse: false" raycaster="objects: .interactive; far: 18"></a-entity>
@@ -60,6 +61,15 @@
         <div><span id="message-count">0 NEWS</span><span id="feed-status">RSS WIRD GELADEN</span></div>
       </section>
       <button id="pause-all" type="button">ALLE ANHALTEN</button>
+      <section id="exit-overlay" class="exit-overlay" hidden>
+        <div class="exit-panel">
+          <p>Raum verlassen?</p>
+          <div>
+            <button id="exit-yes" type="button">Ja</button>
+            <button id="exit-no" type="button">Nein</button>
+          </div>
+        </div>
+      </section>
       <div id="desktop-help">KLICK: NEWS ANHALTEN · X: SCHLIESSEN · WASD: BEWEGEN</div>
       <div id="toast" role="status" aria-live="polite"></div>
       <div class="project-left">digitaler raum</div>
