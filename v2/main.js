@@ -9,7 +9,6 @@ const cameraEl = document.querySelector("#viewer");
 const leftController = document.querySelector("#left-controller");
 const rightController = document.querySelector("#right-controller");
 const cardsRoot = document.querySelector("#news-root");
-const swarmRoot = document.querySelector("#data-swarm");
 const vrHud = document.querySelector("#vr-hud");
 const vrPhase = document.querySelector("#vr-phase");
 const startScreen = document.querySelector("#start-screen");
@@ -53,10 +52,12 @@ let toastTimer;
 let initPromise;
 
 const memeMessages = [
-  ["GIPHY MEME", "Funny Reaction", "Ablenkung fühlt sich kurz gut an, aber der Feed bleibt offen.", "MEME"],
+  ["GIPHY MEME", "Action Reaction", "Action, Reaction, Funny, LOL und What the Fuck in einem Feed.", "MEME"],
   ["GIPHY MEME", "Crying Meme", "Noch ein Clip, noch ein Reiz, noch ein kurzer Dopamin-Moment.", "MEME"],
-  ["GIPHY MEME", "Dancing Meme", "Alles blinkt und bewegt sich weiter.", "MEME"],
-  ["GIPHY MEME", "Fail Moment", "Man klickt weg und sucht sofort die nächste Ablenkung.", "MEME"],
+  ["GIPHY MEME", "Dancing / Music", "Alles blinkt, tanzt und bewegt sich weiter.", "MEME"],
+  ["GIPHY MEME", "Cute Animal", "Süß, bunt, ablenkend und sofort wieder weg.", "MEME"],
+  ["GIPHY MEME", "Confused Reaction", "Okay? LOL? WTF? Der Feed zieht weiter.", "MEME"],
+  ["GIPHY MEME", "Gaming Fail", "Gaming, Fail, Funny, Excited — alles gleichzeitig.", "MEME"],
 ].map(([source, title, excerpt, category]) => normalizeMessage({ source, title, excerpt, category }));
 
 const phoneMessages = [
@@ -65,224 +66,48 @@ const phoneMessages = [
   ["Instagram", "30 neue Likes", "Dein Beitrag bekommt neue Reaktionen.", "INSTAGRAM"],
   ["Snapchat", "Neuer Snap", "Nur kurz öffnen. Wirklich nur kurz.", "SNAPCHAT"],
   ["Mail", "Neue Mail", "Eine Nachricht wartet schon wieder.", "PUSH"],
+  ["Telefon", "Verpasster Anruf", "Jemand hat versucht, dich zu erreichen.", "PUSH"],
+  ["Nachrichten", "Neue SMS", "Eine neue Mitteilung ist eingetroffen.", "WHATSAPP"],
+  ["Twitter", "Trend explodiert", "Alle reden gerade darüber.", "TIKTOK"],
+  ["Facebook", "Neue Kommentare", "Mehr Reaktionen auf deinen Post.", "INSTAGRAM"],
 ].map(([source, title, excerpt, category]) => normalizeMessage({ source, title, excerpt, category }));
 
-const state = { room: "news", complete: false };
-
+const rooms = ["news", "meme", "phone", "overload"];
+const state = { room: "news" };
 browserButton.disabled = false;
 vrButton.disabled = false;
 
-function showToast(text) {
-  toastEl.textContent = text;
-  toastEl.classList.add("is-visible");
-  clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => toastEl.classList.remove("is-visible"), 900);
-}
-
-function setRoom(room) {
-  state.room = room;
-  closedCount = 0;
-  phaseIndex = -1;
-  currentPhase = null;
-  lastSpawn = 0;
-  startedAt = performance.now();
-  pausedMs = 0;
-  pauseStarted = 0;
-  paused = false;
-  cards?.releaseAll();
-  exitOverlay.hidden = true;
-  if (room === "news") feedStatus.textContent = "RSS ARCHIV";
-  if (room === "meme") feedStatus.textContent = "MEME-RAUM";
-  if (room === "phone") feedStatus.textContent = "HANDYRAUM";
-}
-
-function currentMessages() {
-  if (state.room === "meme") return memeMessages;
-  if (state.room === "phone") return phoneMessages;
-  return messages;
-}
-
-function randomMessage() {
-  const list = currentMessages();
-  return list[Math.floor(Math.random() * list.length)];
-}
-
-function play(slot, pitch = 1) {
-  const now = performance.now();
-  if (!slot || now - lastSound < 65) return;
-  lastSound = now;
-  slot.entity.object3D.getWorldPosition(camPos);
-  audio.plop((slot.pitch || 1) * pitch, camPos);
-}
-
-function spawnCard(sound = true) {
-  if (!cards || cards.size >= cards.max) return;
-  cameraEl.object3D.getWorldPosition(camPos);
-  const slot = cards.acquire(randomMessage(), camPos, performance.now(), currentPhase || { motion: 1 });
-  if (slot && sound) play(slot, state.room === "meme" ? 1.28 : state.room === "phone" ? 1.55 : 0.78);
-  updateCount();
-}
-
-function updateCount() {
-  if (!cards) return;
-  messageCount.textContent = `${cards.size} ${state.room === "meme" ? "MEMES" : state.room === "phone" ? "PUSH" : "NEWS"}`;
-}
-
-function closeCard(slot) {
-  slot.entity.object3D.getWorldPosition(camPos);
-  audio.close(slot.pitch, camPos);
-  cards.release(slot);
-  closedCount += 1;
-  const extra = state.room === "news" ? 1 + Math.min(5, Math.floor(closedCount / 2)) : 2 + Math.min(8, Math.floor(closedCount / 2));
-  cards.makeSpace(extra);
-  for (let i = 0; i < extra; i += 1) spawnCard(true);
-  showToast(state.room === "news" ? "MEHR NEWS" : state.room === "meme" ? "MEHR MEMES" : "MEHR PUSH");
-  updateCount();
-}
-
-function toggleCard(slot) {
-  slot.paused = !slot.paused;
-  cards.refreshColor(slot);
-  showToast(slot.paused ? "ANGEHALTEN" : "WEITER");
-}
-
-function elapsed(now) {
-  return (now - startedAt - pausedMs - (paused ? now - pauseStarted : 0)) / 1000;
-}
-
-function enterPhase(index, phase) {
-  phaseIndex = index;
-  currentPhase = phase;
-  phaseLabel.textContent = phase.label;
-  vrPhase.setAttribute("value", phase.label);
-  lastSpawn = 0;
-  cards.releaseAll();
-  if (phase.type === "pause") {
-    cardsRoot.object3D.visible = false;
-    swarmRoot.object3D.visible = false;
-    return;
-  }
-  cardsRoot.object3D.visible = true;
-  swarmRoot.object3D.visible = true;
-  for (let i = 0; i < phase.initial; i += 1) setTimeout(() => spawnCard(true), i * 75);
-}
-
-function showRoomExit() {
-  if (!exitOverlay.hidden) return;
-  cards.releaseAll();
-  phaseLabel.textContent = "RAUM VERLASSEN";
-  vrPhase.setAttribute("value", "RAUM VERLASSEN");
-  exitOverlay.hidden = scene.is("vr-mode");
-  if (scene.is("vr-mode")) {
-    if (state.room === "news") setRoom("meme");
-    else if (state.room === "meme") setRoom("phone");
-    else setRoom("news");
-  }
-}
-
-function updatePhase(now) {
-  const e = elapsed(now);
-  const p = phaseAt(e);
-  timer.textContent = `00:${String(Math.min(cycleDuration, Math.floor(e))).padStart(2, "0")}`;
-  if (p.complete) {
-    showRoomExit();
-    return null;
-  }
-  if (p.index !== phaseIndex) enterPhase(p.index, p.phase);
-  return p;
-}
-
-function updateLocomotion(delta) {
-  if (!scene.is("vr-mode")) return;
-  const y = Math.abs(leftAxis.y) > 0.14 ? leftAxis.y : 0;
-  if (!y) return;
-  cameraEl.object3D.getWorldDirection(forward);
-  forward.y = 0;
-  forward.normalize();
-  move.copy(forward).multiplyScalar(-y * delta * 1.35);
-  rig.object3D.position.add(move);
-}
-
-function snapTurn(direction) {
-  if (!scene.is("vr-mode")) return;
-  cameraEl.object3D.getWorldPosition(oldCam);
-  rig.object3D.rotation.y += THREE.MathUtils.degToRad(direction * -30);
-  rig.object3D.updateMatrixWorld(true);
-  cameraEl.object3D.getWorldPosition(newCam);
-  rig.object3D.position.add(oldCam.sub(newCam));
-}
-
-async function toggleAll() {
-  if (!running) return;
-  const now = performance.now();
-  paused = !paused;
-  if (paused) {
-    pauseStarted = now;
-    await audio.suspend();
-  } else {
-    pausedMs += now - pauseStarted;
-    await audio.resume();
-  }
-  pauseAllButton.textContent = paused ? "ALLE FORTSETZEN" : "ALLE ANHALTEN";
-}
-
-function press(controller) {
-  const hit = controller.components.raycaster?.intersections?.[0];
-  if (!hit) return;
-  const slot = hit.object?.userData?.slot;
-  if (slot) closeCard(slot);
-}
-
-async function init() {
-  const loaded = await loadMessages();
-  messages = loaded.messages;
-  feedStatus.textContent = loaded.rssCount ? `${loaded.rssCount} RSS-MELDUNGEN` : "RSS-FALLBACK";
-  cards = new CardPool({ THREE, root: cardsRoot, max: 220, onToggle: toggleCard, onClose: closeCard });
-  cardsRoot.object3D.visible = false;
-  browserButton.disabled = false;
-  vrButton.disabled = !navigator.xr;
-}
-
-function ensureInit() {
-  if (!initPromise) initPromise = init();
-  return initPromise;
-}
-
-async function start({ enterVR = false } = {}) {
-  await ensureInit();
-  await audio.start();
-  startScreen.classList.add("is-hidden");
-  hud.classList.add("is-visible");
-  pauseAllButton.classList.add("is-visible");
-  desktopHelp.classList.add("is-visible");
-  running = true;
-  setRoom("news");
-  if (enterVR) {
-    try { await scene.enterVR(); } catch { showToast("VR START ABGEBROCHEN"); }
-  }
-}
+function showToast(text) { toastEl.textContent = text; toastEl.classList.add("is-visible"); clearTimeout(toastTimer); toastTimer = setTimeout(() => toastEl.classList.remove("is-visible"), 900); }
+function roomLabel(room) { return room === "news" ? "RSS ARCHIV" : room === "meme" ? "MEME-RAUM" : room === "phone" ? "HANDYRAUM" : "OVERLOAD-RAUM"; }
+function nextRoom() { return rooms[(rooms.indexOf(state.room) + 1) % rooms.length]; }
+function setRoom(room) { state.room = room; closedCount = 0; phaseIndex = -1; currentPhase = null; lastSpawn = 0; startedAt = performance.now(); pausedMs = 0; pauseStarted = 0; paused = false; cards?.releaseAll(); exitOverlay.hidden = true; feedStatus.textContent = roomLabel(room); document.body.dataset.room = room; }
+function currentMessages() { if (state.room === "meme") return memeMessages; if (state.room === "phone") return phoneMessages; if (state.room === "overload") return [...messages, ...memeMessages, ...phoneMessages]; return messages; }
+function randomMessage() { const list = currentMessages(); return list[Math.floor(Math.random() * list.length)]; }
+function play(slot, pitch = 1) { const now = performance.now(); if (!slot || now - lastSound < 65) return; lastSound = now; slot.entity.object3D.getWorldPosition(camPos); audio.plop((slot.pitch || 1) * pitch, camPos); }
+function roomPitch() { return state.room === "news" ? 0.78 : state.room === "meme" ? 1.28 : state.room === "phone" ? 1.55 : 1.1 + Math.random() * 0.62; }
+function spawnCard(sound = true) { if (!cards || cards.size >= cards.max) return; cameraEl.object3D.getWorldPosition(camPos); const phase = currentPhase ? { ...currentPhase, motion: state.room === "overload" ? currentPhase.motion + 2 : currentPhase.motion } : { motion: 1 }; const slot = cards.acquire(randomMessage(), camPos, performance.now(), phase); if (slot && sound) play(slot, roomPitch()); updateCount(); }
+function updateCount() { if (!cards) return; messageCount.textContent = `${cards.size} ${state.room === "meme" ? "MEMES" : state.room === "phone" ? "PUSH" : state.room === "overload" ? "OVERLOAD" : "NEWS"}`; }
+function closeCard(slot) { slot.entity.object3D.getWorldPosition(camPos); audio.close(slot.pitch, camPos); cards.release(slot); closedCount += 1; const extra = state.room === "news" ? 1 + Math.min(5, Math.floor(closedCount / 2)) : state.room === "overload" ? 6 + Math.min(16, Math.floor(closedCount / 2)) : 2 + Math.min(8, Math.floor(closedCount / 2)); cards.makeSpace(extra); for (let i = 0; i < extra; i += 1) spawnCard(true); showToast(state.room === "news" ? "MEHR NEWS" : state.room === "meme" ? "MEHR MEMES" : state.room === "phone" ? "MEHR PUSH" : "ALLES KOMMT ZURÜCK"); updateCount(); }
+function toggleCard(slot) { slot.paused = !slot.paused; cards.refreshColor(slot); showToast(slot.paused ? "ANGEHALTEN" : "WEITER"); }
+function elapsed(now) { return (now - startedAt - pausedMs - (paused ? now - pauseStarted : 0)) / 1000; }
+function enterPhase(index, phase) { phaseIndex = index; currentPhase = phase; const label = `${roomLabel(state.room)} · ${phase.label}`; phaseLabel.textContent = label; vrPhase.setAttribute("value", label); lastSpawn = 0; cards.releaseAll(); cardsRoot.object3D.visible = true; const initial = state.room === "overload" ? phase.initial + 30 : phase.initial; for (let i = 0; i < initial; i += 1) setTimeout(() => spawnCard(true), i * 55); }
+function showRoomExit() { if (!exitOverlay.hidden) return; cards.releaseAll(); phaseLabel.textContent = "RAUM VERLASSEN"; vrPhase.setAttribute("value", "RAUM VERLASSEN"); exitOverlay.hidden = false; }
+function updatePhase(now) { const e = elapsed(now); const p = phaseAt(e); timer.textContent = `00:${String(Math.min(cycleDuration, Math.floor(e))).padStart(2, "0")}`; if (p.complete) { showRoomExit(); return null; } if (p.index !== phaseIndex) enterPhase(p.index, p.phase); return p; }
+function updateLocomotion(delta) { if (!scene.is("vr-mode")) return; const y = Math.abs(leftAxis.y) > 0.14 ? leftAxis.y : 0; if (!y) return; cameraEl.object3D.getWorldDirection(forward); forward.y = 0; forward.normalize(); move.copy(forward).multiplyScalar(-y * delta * 1.35); rig.object3D.position.add(move); }
+function snapTurn(direction) { if (!scene.is("vr-mode")) return; cameraEl.object3D.getWorldPosition(oldCam); rig.object3D.rotation.y += THREE.MathUtils.degToRad(direction * -30); rig.object3D.updateMatrixWorld(true); cameraEl.object3D.getWorldPosition(newCam); rig.object3D.position.add(oldCam.sub(newCam)); }
+async function toggleAll() { if (!running) return; const now = performance.now(); paused = !paused; if (paused) { pauseStarted = now; await audio.suspend(); } else { pausedMs += now - pauseStarted; await audio.resume(); } pauseAllButton.textContent = paused ? "ALLE FORTSETZEN" : "ALLE ANHALTEN"; }
+function press(controller) { const hit = controller.components.raycaster?.intersections?.[0]; if (!hit) return; const slot = hit.object?.userData?.slot; if (slot) closeCard(slot); }
+async function init() { const loaded = await loadMessages(); messages = loaded.messages; feedStatus.textContent = loaded.rssCount ? `${loaded.rssCount} RSS-MELDUNGEN` : "RSS-FALLBACK"; cards = new CardPool({ THREE, root: cardsRoot, max: 260, onToggle: toggleCard, onClose: closeCard }); cardsRoot.object3D.visible = false; browserButton.disabled = false; vrButton.disabled = !navigator.xr; }
+function ensureInit() { if (!initPromise) initPromise = init(); return initPromise; }
+async function start({ enterVR = false } = {}) { await ensureInit(); await audio.start(); startScreen.classList.add("is-hidden"); hud.classList.add("is-visible"); pauseAllButton.classList.add("is-visible"); desktopHelp.classList.add("is-visible"); running = true; setRoom("news"); if (enterVR) { try { await scene.enterVR(); } catch { showToast("VR START ABGEBROCHEN"); } } }
 
 browserButton.addEventListener("click", () => start());
 vrButton.addEventListener("click", () => start({ enterVR: true }));
 pauseAllButton.addEventListener("click", toggleAll);
 exitNoButton.addEventListener("click", () => { exitOverlay.hidden = true; setRoom(state.room); });
-exitYesButton.addEventListener("click", () => {
-  exitOverlay.hidden = true;
-  if (state.room === "news") setRoom("meme");
-  else if (state.room === "meme") setRoom("phone");
-  else setRoom("news");
-});
-leftController.addEventListener("thumbstickmoved", (event) => {
-  const x = event.detail.x || 0;
-  leftAxis.set(0, event.detail.y || 0);
-  if (Math.abs(x) > 0.68 && !snapLatch) { snapLatch = true; snapTurn(Math.sign(x)); }
-  if (Math.abs(x) < 0.24) snapLatch = false;
-});
-rightController.addEventListener("thumbstickmoved", (event) => {
-  const x = event.detail.x || 0;
-  if (Math.abs(x) > 0.68 && !snapLatch) { snapLatch = true; snapTurn(Math.sign(x)); }
-  if (Math.abs(x) < 0.24) snapLatch = false;
-});
+exitYesButton.addEventListener("click", () => { exitOverlay.hidden = true; setRoom(nextRoom()); });
+leftController.addEventListener("thumbstickmoved", (event) => { const x = event.detail.x || 0; leftAxis.set(0, event.detail.y || 0); if (Math.abs(x) > 0.68 && !snapLatch) { snapLatch = true; snapTurn(Math.sign(x)); } if (Math.abs(x) < 0.24) snapLatch = false; });
+rightController.addEventListener("thumbstickmoved", (event) => { const x = event.detail.x || 0; if (Math.abs(x) > 0.68 && !snapLatch) { snapLatch = true; snapTurn(Math.sign(x)); } if (Math.abs(x) < 0.24) snapLatch = false; });
 leftController.addEventListener("triggerdown", () => press(leftController));
 rightController.addEventListener("triggerdown", () => press(rightController));
 leftController.addEventListener("thumbstickdown", () => press(leftController));
@@ -290,23 +115,6 @@ rightController.addEventListener("thumbstickdown", () => press(rightController))
 scene.addEventListener("enter-vr", () => { vrHud.setAttribute("visible", true); if (!running) void start(); });
 scene.addEventListener("exit-vr", () => { vrHud.setAttribute("visible", false); });
 
-AFRAME.registerComponent("nachrichtenraum-loop", {
-  tick(_time, deltaMs) {
-    const now = performance.now();
-    const delta = Math.min(deltaMs / 1000, 0.05);
-    if (!running || !cards || paused) return;
-    updateLocomotion(delta);
-    const p = updatePhase(now);
-    if (!p || p.phase.type === "pause") return;
-    const rate = THREE.MathUtils.lerp(p.phase.startRate, p.phase.endRate, p.progress);
-    const target = Math.round(THREE.MathUtils.lerp(p.phase.initial, p.phase.target, p.progress));
-    if (now - lastSpawn > rate && cards.size < target) {
-      lastSpawn = now;
-      for (let i = 0; i < p.phase.batch && cards.size < target; i += 1) spawnCard(true);
-    }
-    cameraEl.object3D.getWorldPosition(camPos);
-    cards.update(delta, p.phase.intensity, now, camPos);
-  },
-});
+AFRAME.registerComponent("nachrichtenraum-loop", { tick(_time, deltaMs) { const now = performance.now(); const delta = Math.min(deltaMs / 1000, 0.05); if (!running || !cards || paused || !exitOverlay.hidden) return; updateLocomotion(delta); const p = updatePhase(now); if (!p) return; const rate = THREE.MathUtils.lerp(p.phase.startRate, p.phase.endRate, p.progress); const extraTarget = state.room === "overload" ? 85 : 0; const target = Math.round(THREE.MathUtils.lerp(p.phase.initial, p.phase.target + extraTarget, p.progress)); if (now - lastSpawn > rate && cards.size < target) { lastSpawn = now; for (let i = 0; i < p.phase.batch && cards.size < target; i += 1) spawnCard(true); } cameraEl.object3D.getWorldPosition(camPos); cards.update(delta, p.phase.intensity + (state.room === "overload" ? 3 : 0), now, camPos); } });
 scene.setAttribute("nachrichtenraum-loop", "");
 setTimeout(() => void ensureInit(), 300);
