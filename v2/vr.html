@@ -14,9 +14,9 @@ html,body{margin:0;height:100%;background:#02040b;color:white;font-family:Inter,
   <a-assets></a-assets>
   <a-entity id="rig" position="0 0 0">
     <a-entity id="camera" camera look-controls wasd-controls position="0 1.6 0">
-      <a-entity id="hud" position="0 .82 -1.45">
-        <a-plane width="1.42" height=".26" color="#07101f" opacity=".82"></a-plane>
-        <a-text id="hudText" value="wenig" align="center" color="#eaf2ff" width="2.2" position="0 .015 .02"></a-text>
+      <a-entity id="hud" position="-.72 .82 -1.45">
+        <a-plane width="1.12" height=".26" color="#07101f" opacity=".82"></a-plane>
+        <a-text id="hudText" value="wenig" align="center" color="#eaf2ff" width="1.8" position="0 .015 .02"></a-text>
       </a-entity>
     </a-entity>
     <a-entity laser-controls="hand: right" raycaster="objects:.clickable;far:25" line="color:#ffffff;opacity:.85"></a-entity>
@@ -45,8 +45,8 @@ function card(){if(mode==='rest')return;let e=document.createElement('a-entity')
 function closeCard(e){if(!e.parentNode)return;e.remove();closed++;tone('close');let more=Math.min(mode==='news'?9:mode==='meme'?12:15,1+Math.floor(closed/2));for(let i=0;i<more;i++)card()}
 function exitPanel(label,yes){let p=document.createElement('a-entity');p.classList.add('clickable');p.setAttribute('position','1.2 2.45 -2.1');p.setAttribute('rotation','0 -24 0');let bg=document.createElement('a-plane');bg.setAttribute('width','1.25');bg.setAttribute('height','.45');bg.setAttribute('color','#16a34a');bg.setAttribute('opacity','.9');p.appendChild(bg);addText(p,label,.07,.04,'#fff',1.8);p.addEventListener('click',yes);world.appendChild(p)}
 function run(done){let ps=phases[mode];if(phase>=ps.length){done();return}let p=ps[phase];hudText.setAttribute('value',p[0]);for(let i=0;i<Math.min(p[4]-world.children.length,p[3]*3);i++)card();let start=Date.now(),iv=every(()=>{if(Date.now()-start>p[1])return;if(world.children.length<p[4])for(let i=0;i<p[3];i++)card()},p[2]);later(()=>{clearInterval(iv);phase++;run(done)},p[1])}
-function begin(m='news'){clearTimers();running=true;mode=m;phase=0;made=0;closed=0;clearWorld();setRoom();if(mode==='rest'){hudText.setAttribute('value','Pause');tone('rest');return}for(let i=0;i<8;i++)card();run(()=>{hudText.setAttribute('value','Raum verlassen');if(mode==='news')exitPanel('Raum verlassen',()=>begin('meme'));else if(mode==='meme')exitPanel('Handyraum',()=>begin('push'));else if(mode==='push')exitPanel('Pause',()=>begin('rest'))})}
-document.getElementById('startBtn').onclick=async()=>{initAudio();overlay.classList.add('hidden');begin('news');try{await scene.enterVR()}catch(e){}};
+function begin(m='news'){clearTimers();running=true;mode=m;phase=0;made=0;closed=0;clearWorld();setRoom();if(mode==='rest'){hudText.setAttribute('value','Pause');tone('rest');return}tone('news');setTimeout(()=>tone('news'),220);for(let i=0;i<8;i++)card();run(()=>{hudText.setAttribute('value','Raum verlassen');if(mode==='news')exitPanel('Raum verlassen',()=>begin('meme'));else if(mode==='meme')exitPanel('Handyraum',()=>begin('push'));else if(mode==='push')exitPanel('Pause',()=>begin('rest'))})}
+document.getElementById('startBtn').onclick=async()=>{initAudio();tone('news');overlay.classList.add('hidden');begin('news');try{await scene.enterVR()}catch(e){}};
 </script>
 </body>
 </html>
