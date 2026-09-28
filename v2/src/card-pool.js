@@ -29,6 +29,7 @@ const appIcons = {
   SNAPCHAT: { icon: "☻", color: "#facc15", label: "Snapchat" },
   DISCORD: { icon: "☾", color: "#5865f2", label: "Discord" },
   NEWS: { icon: "!", color: "#16a34a", label: "Wichtige Nachricht" },
+  MEME: { icon: "★", color: "#ff00b8", label: "GIPHY Meme" },
 };
 
 function wrapText(context, value, maxWidth, maxLines) {
@@ -48,26 +49,20 @@ function wrapText(context, value, maxWidth, maxLines) {
   if (line && lines.length < maxLines) lines.push(line);
   if (words.length && lines.length) {
     let finalLine = lines.at(-1);
-    while (context.measureText(`${finalLine}…`).width > maxWidth && finalLine.length > 4) {
-      finalLine = finalLine.slice(0, -1);
-    }
+    while (context.measureText(`${finalLine}…`).width > maxWidth && finalLine.length > 4) finalLine = finalLine.slice(0, -1);
     lines[lines.length - 1] = `${finalLine.trim()}…`;
   }
   return lines;
 }
 
 function pulse(cursorEl, strength = 0.35, duration = 55) {
-  const gamepad =
-    cursorEl?.components?.["tracked-controls"]?.controller?.gamepad ||
-    cursorEl?.components?.["meta-touch-controls"]?.controller?.gamepad;
+  const gamepad = cursorEl?.components?.["tracked-controls"]?.controller?.gamepad || cursorEl?.components?.["meta-touch-controls"]?.controller?.gamepad;
   const actuator = gamepad?.hapticActuators?.[0] || gamepad?.vibrationActuator;
   if (actuator?.pulse) actuator.pulse(strength, duration).catch(() => {});
   else if (actuator?.playEffect) actuator.playEffect("dual-rumble", { duration, strongMagnitude: strength, weakMagnitude: strength });
 }
 
-export function isCloseHit(uv) {
-  return Boolean(uv);
-}
+export function isCloseHit(uv) { return Boolean(uv); }
 
 export class CardPool {
   constructor({ THREE, root, max = 72, onToggle, onClose }) {
@@ -79,9 +74,6 @@ export class CardPool {
     this.slots = [];
     this.active = new Set();
     this.geometry = new THREE.PlaneGeometry(1.46, 0.73);
-    this.cameraPosition = new THREE.Vector3();
-    this.tempPosition = new THREE.Vector3();
-    this.lookTarget = new THREE.Vector3();
   }
 
   createSlot() {
@@ -94,48 +86,18 @@ export class CardPool {
     texture.minFilter = this.THREE.LinearFilter;
     texture.magFilter = this.THREE.LinearFilter;
     texture.generateMipmaps = false;
-    const material = new this.THREE.MeshBasicMaterial({
-      map: texture,
-      side: this.THREE.FrontSide,
-      toneMapped: false,
-    });
+    const material = new this.THREE.MeshBasicMaterial({ map: texture, side: this.THREE.FrontSide, toneMapped: false });
     const mesh = new this.THREE.Mesh(this.geometry, material);
     const entity = document.createElement("a-entity");
     entity.classList.add("news-card");
     entity.setObject3D("mesh", mesh);
     entity.object3D.visible = false;
     this.root.appendChild(entity);
-    const slot = {
-      entity,
-      mesh,
-      material,
-      texture,
-      canvas,
-      context,
-      active: false,
-      paused: false,
-      hoveredBy: new Set(),
-      velocity: new this.THREE.Vector3(),
-      pitch: 1,
-      wave: 0,
-      bornAt: 0,
-      pressedAt: 0,
-      motionKind: "float",
-      message: null,
-      raycast: mesh.raycast,
-    };
+    const slot = { entity, mesh, material, texture, canvas, context, active: false, paused: false, hoveredBy: new Set(), velocity: new this.THREE.Vector3(), pitch: 1, wave: 0, bornAt: 0, pressedAt: 0, motionKind: "float", message: null, raycast: mesh.raycast };
     mesh.userData.slot = slot;
     entity.addEventListener("click", (event) => this.handleClick(slot, event));
-    entity.addEventListener("raycaster-intersected", (event) => {
-      slot.hoveredBy.add(event.detail.el);
-      this.refreshColor(slot);
-      slot.entity.object3D.scale.setScalar((slot.baseScale || 1) * 1.035);
-    });
-    entity.addEventListener("raycaster-intersected-cleared", (event) => {
-      slot.hoveredBy.delete(event.detail.el);
-      if (!slot.hoveredBy.size) slot.entity.object3D.scale.setScalar(slot.baseScale || 1);
-      this.refreshColor(slot);
-    });
+    entity.addEventListener("raycaster-intersected", (event) => { slot.hoveredBy.add(event.detail.el); this.refreshColor(slot); slot.entity.object3D.scale.setScalar((slot.baseScale || 1) * 1.035); });
+    entity.addEventListener("raycaster-intersected-cleared", (event) => { slot.hoveredBy.delete(event.detail.el); if (!slot.hoveredBy.size) slot.entity.object3D.scale.setScalar(slot.baseScale || 1); this.refreshColor(slot); });
     this.slots.push(slot);
     return slot;
   }
@@ -146,11 +108,8 @@ export class CardPool {
     const now = performance.now();
     if (now - slot.pressedAt < 180) return;
     slot.pressedAt = now;
-    const uv = event.detail?.intersection?.uv;
-    if (uv) this.root.dataset.lastUv = `${uv.x.toFixed(3)},${uv.y.toFixed(3)}`;
-    const closes = isCloseHit(uv);
     pulse(event.detail?.cursorEl, 0.65, 65);
-    if (closes) this.onClose(slot);
+    this.onClose(slot);
   }
 
   pressIntersection(intersection, cursorEl) {
@@ -159,9 +118,8 @@ export class CardPool {
     const now = performance.now();
     if (now - slot.pressedAt < 180) return false;
     slot.pressedAt = now;
-    const closes = isCloseHit(intersection.uv);
     pulse(cursorEl, 0.65, 65);
-    if (closes) this.onClose(slot);
+    this.onClose(slot);
     return true;
   }
 
@@ -169,25 +127,74 @@ export class CardPool {
     const { context } = slot;
     const source = String(message.source || "NEWS").toUpperCase();
     const category = String(message.category || "NEWS").toUpperCase();
+    const isMeme = category === "MEME" || source.includes("GIPHY");
+    if (isMeme) {
+      const stripes = ["#ff00b8", "#00ddff", "#ffe900", "#75ff40", "#ff7700", "#8b5cf6"];
+      const gradient = context.createLinearGradient(0, 0, 512, 256);
+      stripes.forEach((color, index) => gradient.addColorStop(index / (stripes.length - 1), color));
+      context.fillStyle = "#090018";
+      context.fillRect(0, 0, 512, 256);
+      context.globalAlpha = 0.74;
+      context.fillStyle = gradient;
+      context.fillRect(0, 0, 512, 256);
+      context.globalAlpha = 1;
+      context.fillStyle = "rgba(10, 0, 24, 0.78)";
+      context.beginPath();
+      context.roundRect(18, 18, 476, 220, 28);
+      context.fill();
+      context.strokeStyle = stripes[Math.floor(Math.random() * stripes.length)];
+      context.lineWidth = 7;
+      context.stroke();
+      for (let i = 0; i < 18; i += 1) {
+        context.fillStyle = stripes[i % stripes.length];
+        context.globalAlpha = 0.34;
+        context.beginPath();
+        context.arc(36 + Math.random() * 440, 34 + Math.random() * 188, 8 + Math.random() * 22, 0, Math.PI * 2);
+        context.fill();
+      }
+      context.globalAlpha = 1;
+      context.fillStyle = "#fff7ff";
+      context.font = "900 18px Arial";
+      context.fillText("GIPHY · MEME-RAUM", 34, 52);
+      context.fillStyle = "#ffe900";
+      context.font = "900 54px Arial";
+      context.fillText("MEME", 34, 112);
+      context.fillStyle = "#ffffff";
+      context.font = "900 30px Arial";
+      wrapText(context, message.title, 405, 2).forEach((line, index) => context.fillText(line, 34, 154 + index * 34));
+      context.fillStyle = "#e9d5ff";
+      context.font = "700 15px Arial";
+      wrapText(context, message.excerpt, 395, 2).forEach((line, index) => context.fillText(line, 34, 218 + index * 18));
+      context.fillStyle = "rgba(0, 0, 0, 0.54)";
+      context.beginPath();
+      context.roundRect(436, 31, 40, 40, 13);
+      context.fill();
+      context.strokeStyle = "#ffffff";
+      context.lineWidth = 4;
+      context.beginPath();
+      context.moveTo(448, 43); context.lineTo(464, 59); context.moveTo(464, 43); context.lineTo(448, 59); context.stroke();
+      slot.texture.needsUpdate = true;
+      return;
+    }
+
     const appKey = Object.keys(appIcons).find((key) => source.includes(key) || category.includes(key)) || "NEWS";
     const app = appIcons[appKey];
     const accent = app.color || categoryColors[message.category] || categoryColors.NEWS;
-
+    const isPhone = ["WHATSAPP", "INSTAGRAM", "TIKTOK", "SNAPCHAT", "PUSH"].some((key) => source.includes(key) || category.includes(key));
     context.clearRect(0, 0, 512, 256);
-    context.fillStyle = "#edfdf4";
+    context.fillStyle = isPhone ? "#f0fdf4" : "#061226";
     context.fillRect(0, 0, 512, 256);
-
-    context.shadowColor = "rgba(6, 95, 70, 0.24)";
-    context.shadowBlur = 18;
+    context.shadowColor = isPhone ? "rgba(37, 211, 102, 0.28)" : "rgba(49, 105, 255, 0.32)";
+    context.shadowBlur = 20;
     context.shadowOffsetY = 8;
-    context.fillStyle = "#ffffff";
+    context.fillStyle = isPhone ? "#ffffff" : "rgba(5, 13, 31, 0.94)";
     context.beginPath();
-    context.roundRect(18, 18, 476, 220, 34);
+    context.roundRect(18, 18, 476, 220, isPhone ? 34 : 0);
     context.fill();
     context.shadowColor = "transparent";
-    context.shadowBlur = 0;
-    context.shadowOffsetY = 0;
-
+    context.strokeStyle = isPhone ? accent : "rgba(149,188,255,.72)";
+    context.lineWidth = isPhone ? 4 : 2;
+    context.stroke();
     context.fillStyle = accent;
     context.beginPath();
     context.roundRect(34, 34, 50, 50, 14);
@@ -199,45 +206,29 @@ export class CardPool {
     context.fillText(app.icon, 59, 60);
     context.textAlign = "left";
     context.textBaseline = "alphabetic";
-
-    context.fillStyle = "#0f172a";
+    context.fillStyle = isPhone ? "#0f172a" : "#8eb8ff";
     context.font = "700 15px Arial";
-    context.fillText(app.label, 98, 55);
-    context.fillStyle = "#64748b";
+    context.fillText(isPhone ? app.label : String(message.source || "RSS ARCHIV"), 98, 55);
+    context.fillStyle = isPhone ? "#64748b" : "#9db8ff";
     context.font = "600 13px Arial";
-    context.fillText("jetzt · wichtige Mitteilung", 98, 76);
-
-    context.fillStyle = "#ecfdf5";
+    context.fillText(isPhone ? "jetzt · wichtige Mitteilung" : "alte Beispielmeldung · RSS Archiv", 98, 76);
+    context.fillStyle = isPhone ? "#ecfdf5" : "rgba(255,255,255,.12)";
     context.beginPath();
     context.roundRect(436, 31, 40, 40, 13);
     context.fill();
-    context.strokeStyle = "#16a34a";
+    context.strokeStyle = isPhone ? "#16a34a" : "#ffffff";
     context.lineWidth = 4;
     context.beginPath();
-    context.moveTo(448, 43);
-    context.lineTo(464, 59);
-    context.moveTo(464, 43);
-    context.lineTo(448, 59);
-    context.stroke();
-
-    context.fillStyle = "#07120b";
-    context.font = "700 25px Arial";
+    context.moveTo(448, 43); context.lineTo(464, 59); context.moveTo(464, 43); context.lineTo(448, 59); context.stroke();
+    context.fillStyle = isPhone ? "#07120b" : "#eef5ff";
+    context.font = "800 25px Arial";
     const titleLines = wrapText(context, message.title, 404, 3);
     titleLines.forEach((line, index) => context.fillText(line, 34, 116 + index * 29));
-
-    context.fillStyle = "#334155";
+    context.fillStyle = isPhone ? "#166534" : "#c3d0e6";
     context.font = "400 16px Arial";
     const excerptLines = wrapText(context, message.excerpt, 420, 2);
     const excerptY = 130 + titleLines.length * 29;
     excerptLines.forEach((line, index) => context.fillText(line, 34, excerptY + index * 21));
-
-    context.fillStyle = "rgba(34, 197, 94, 0.16)";
-    context.beginPath();
-    context.roundRect(34, 214, 164, 18, 9);
-    context.fill();
-    context.fillStyle = "#15803d";
-    context.font = "700 11px Arial";
-    context.fillText(`${message.source} · ${message.category}`.slice(0, 38), 44, 227);
     slot.texture.needsUpdate = true;
   }
 
@@ -246,11 +237,7 @@ export class CardPool {
     const theta = Math.random() * Math.PI * 2;
     const vertical = this.THREE.MathUtils.lerp(-0.72, 0.78, Math.random());
     const planar = Math.sqrt(1 - vertical * vertical);
-    return new this.THREE.Vector3(
-      cameraPosition.x + Math.cos(theta) * planar * radius,
-      cameraPosition.y + vertical * radius * 0.52,
-      cameraPosition.z + Math.sin(theta) * planar * radius,
-    );
+    return new this.THREE.Vector3(cameraPosition.x + Math.cos(theta) * planar * radius, cameraPosition.y + vertical * radius * 0.52, cameraPosition.z + Math.sin(theta) * planar * radius);
   }
 
   acquire(message, cameraPosition, now = performance.now(), phase = {}) {
@@ -263,8 +250,7 @@ export class CardPool {
     slot.pitch = this.THREE.MathUtils.randFloat(0.84, 1.18);
     slot.wave = Math.random() * Math.PI * 2;
     const motion = phase.motion || 0.6;
-    const movingChance = Math.min(0.86, 0.18 + motion * 0.16);
-    slot.motionKind = Math.random() < movingChance ? (motion > 3 && Math.random() < 0.7 ? "flyby" : "wave") : "still";
+    slot.motionKind = Math.random() < Math.min(0.86, 0.18 + motion * 0.16) ? (motion > 3 && Math.random() < 0.7 ? "flyby" : "wave") : "still";
     slot.bornAt = now;
     slot.hoveredBy.clear();
     this.draw(slot, message);
@@ -281,17 +267,13 @@ export class CardPool {
       slot.velocity.y += this.THREE.MathUtils.randFloatSpread(0.1);
       slot.velocity.z += this.THREE.MathUtils.randFloatSpread(0.12);
     } else if (slot.motionKind === "wave") {
-      slot.velocity.set(-radial.z, this.THREE.MathUtils.randFloatSpread(0.34), radial.x).normalize();
-      slot.velocity.multiplyScalar(this.THREE.MathUtils.randFloat(0.055, 0.16));
+      slot.velocity.set(-radial.z, this.THREE.MathUtils.randFloatSpread(0.34), radial.x).normalize().multiplyScalar(this.THREE.MathUtils.randFloat(0.055, 0.16));
     } else {
-      slot.velocity.set(-radial.z, this.THREE.MathUtils.randFloatSpread(0.1), radial.x).normalize();
-      slot.velocity.multiplyScalar(this.THREE.MathUtils.randFloat(0.006, 0.024));
+      slot.velocity.set(-radial.z, this.THREE.MathUtils.randFloatSpread(0.1), radial.x).normalize().multiplyScalar(this.THREE.MathUtils.randFloat(0.006, 0.024));
     }
     slot.entity.object3D.visible = true;
     slot.mesh.raycast = slot.raycast;
     slot.entity.classList.add("interactive");
-    slot.entity.dataset.active = "true";
-    slot.entity.dataset.paused = "false";
     this.active.add(slot);
     this.refreshColor(slot);
     return slot;
@@ -306,92 +288,13 @@ export class CardPool {
     slot.entity.object3D.scale.setScalar(1);
     slot.mesh.raycast = () => {};
     slot.entity.classList.remove("interactive");
-    slot.entity.dataset.active = "false";
-    slot.entity.dataset.paused = "false";
     this.active.delete(slot);
   }
-
-  releaseAll() {
-    for (const slot of [...this.active]) this.release(slot);
-  }
-
-  prepareReplacement(closedSlot, extraCount) {
-    let remaining = Math.max(0, extraCount);
-    const candidates = [...this.active].filter(
-      (candidate) => !candidate.paused && !candidate.hoveredBy.size,
-    );
-    const fallback = [...this.active].filter((candidate) => !candidate.hoveredBy.size);
-    while (remaining > 0) {
-      const slot = candidates.shift() || fallback.shift();
-      if (!slot) break;
-      if (slot !== closedSlot && slot.active) {
-        this.release(slot);
-        remaining -= 1;
-      }
-    }
-  }
-
-  makeSpace(count) {
-    while (this.size > this.max - count) {
-      const candidates = [...this.active];
-      const slot =
-        candidates.find((candidate) => !candidate.paused && !candidate.hoveredBy.size) ||
-        candidates.find((candidate) => !candidate.hoveredBy.size) ||
-        candidates[0];
-      if (!slot) break;
-      this.release(slot);
-    }
-  }
-
-  toggle(slot) {
-    if (!slot?.active) return false;
-    slot.paused = !slot.paused;
-    slot.entity.dataset.paused = String(slot.paused);
-    this.refreshColor(slot);
-    return slot.paused;
-  }
-
-  refreshColor(slot) {
-    if (!slot.active) return;
-    if (slot.hoveredBy.size) slot.material.color.set(0xc9e0ff);
-    else if (slot.paused) slot.material.color.set(0x7fa6e8);
-    else slot.material.color.set(0xffffff);
-  }
-
-  update(delta, intensity, now, cameraPosition) {
-    let index = 0;
-    for (const slot of this.active) {
-      if (!slot.paused) {
-        const age = (now - slot.bornAt) / 1000;
-        const pop = Math.min(1, age / 0.34);
-        const easeOutBack = 1 + 1.7 * Math.pow(pop - 1, 3) + 0.7 * Math.pow(pop - 1, 2);
-        slot.entity.object3D.scale.setScalar((slot.baseScale || 1) * Math.max(0.12, easeOutBack));
-        if (slot.motionKind !== "still") {
-          slot.entity.object3D.position.addScaledVector(slot.velocity, delta * intensity);
-        }
-        const waveStrength = slot.motionKind === "still" ? 0.00045 : slot.motionKind === "flyby" ? 0.0048 : 0.0026;
-        slot.entity.object3D.position.y += Math.sin(age * (1.2 + intensity * 0.22) + slot.wave) * waveStrength * intensity;
-        if (index % 3 === Math.floor(now / 160) % 3) {
-          slot.entity.object3D.lookAt(cameraPosition);
-          slot.entity.object3D.rotateZ(Math.sin(slot.wave + age * 0.5) * 0.03 * intensity);
-        }
-        const distance = slot.entity.object3D.position.distanceTo(cameraPosition);
-        if (distance > 7.8 || distance < 0.82) {
-          slot.entity.object3D.position.copy(this.randomPosition(cameraPosition));
-          slot.entity.object3D.lookAt(cameraPosition);
-        }
-      }
-      index += 1;
-    }
-  }
-
-  get size() {
-    return this.active.size;
-  }
-
-  get pausedCount() {
-    let count = 0;
-    for (const slot of this.active) if (slot.paused) count += 1;
-    return count;
-  }
+  releaseAll() { for (const slot of [...this.active]) this.release(slot); }
+  makeSpace(count) { while (this.size > this.max - count) { const slot = [...this.active].find((candidate) => !candidate.paused && !candidate.hoveredBy.size) || [...this.active][0]; if (!slot) break; this.release(slot); } }
+  toggle(slot) { if (!slot?.active) return false; slot.paused = !slot.paused; this.refreshColor(slot); return slot.paused; }
+  refreshColor(slot) { if (!slot.active) return; if (slot.hoveredBy.size) slot.material.color.set(0xd1fae5); else if (slot.paused) slot.material.color.set(0x86efac); else slot.material.color.set(0xffffff); }
+  update(delta, intensity, now, cameraPosition) { let index = 0; for (const slot of this.active) { if (!slot.paused) { const age = (now - slot.bornAt) / 1000; const pop = Math.min(1, age / 0.34); const easeOutBack = 1 + 1.7 * Math.pow(pop - 1, 3) + 0.7 * Math.pow(pop - 1, 2); slot.entity.object3D.scale.setScalar((slot.baseScale || 1) * Math.max(0.12, easeOutBack)); if (slot.motionKind !== "still") slot.entity.object3D.position.addScaledVector(slot.velocity, delta * intensity); const waveStrength = slot.motionKind === "still" ? 0.00045 : slot.motionKind === "flyby" ? 0.0048 : 0.0026; slot.entity.object3D.position.y += Math.sin(age * (1.2 + intensity * 0.22) + slot.wave) * waveStrength * intensity; if (index % 3 === Math.floor(now / 160) % 3) { slot.entity.object3D.lookAt(cameraPosition); slot.entity.object3D.rotateZ(Math.sin(slot.wave + age * 0.5) * 0.03 * intensity); } const distance = slot.entity.object3D.position.distanceTo(cameraPosition); if (distance > 7.8 || distance < 0.82) { slot.entity.object3D.position.copy(this.randomPosition(cameraPosition)); slot.entity.object3D.lookAt(cameraPosition); } } index += 1; } }
+  get size() { return this.active.size; }
+  get pausedCount() { let count = 0; for (const slot of this.active) if (slot.paused) count += 1; return count; }
 }
