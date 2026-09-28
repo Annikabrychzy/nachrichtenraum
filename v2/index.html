@@ -8,7 +8,7 @@
     <title>Nachrichtenraum 2</title>
     <link rel="manifest" href="./manifest.webmanifest" />
     <link rel="icon" href="./icon.svg" type="image/svg+xml" />
-    <link rel="stylesheet" href="./styles.css?v=rooms-2" />
+    <link rel="stylesheet" href="./styles.css?v=rooms-4" />
     <script src="../vendor/aframe-v1.8.0.min.js"></script>
   </head>
   <body>
@@ -19,62 +19,25 @@
             <a-entity id="vr-hud" visible="false">
               <a-plane position="-0.67 0.48 -1.4" width="0.62" height="0.11" material="color: #061226; shader: flat; transparent: true; opacity: 0.72; depthTest: false"></a-plane>
               <a-text id="vr-phase" value="BEREIT" position="-0.96 0.48 -1.395" width="1.15" color="#d9e7ff" align="left" baseline="center" material="depthTest: false"></a-text>
-              <a-plane id="vr-pause-button" position="0 -0.52 -1.25" width="0.64" height="0.13" material="color: #0a1b35; shader: flat; opacity: 0.92; depthTest: false">
-                <a-text id="vr-pause-label" value="ALLE ANHALTEN" position="0 0 0.006" width="0.78" color="#ffffff" align="center" baseline="center" material="depthTest: false"></a-text>
-              </a-plane>
+              <a-plane id="vr-pause-button" position="0 -0.52 -1.25" width="0.64" height="0.13" material="color: #0a1b35; shader: flat; opacity: 0.92; depthTest: false"><a-text id="vr-pause-label" value="ALLE ANHALTEN" position="0 0 0.006" width="0.78" color="#ffffff" align="center" baseline="center" material="depthTest: false"></a-text></a-plane>
               <a-text id="vr-help" value="LINKS: LAUFEN  |  RECHTS: DREHEN  |  TRIGGER: AUSWAHL" position="0 -0.72 -1.5" width="1.35" color="#7084a8" align="center" baseline="center" material="depthTest: false"></a-text>
             </a-entity>
           </a-camera>
           <a-entity id="left-controller" meta-touch-controls="hand: left; model: true" raycaster="objects: .interactive; far: 14; showLine: false" cursor="rayOrigin: entity; fuse: false; downEvents: triggerdown; upEvents: triggerup"></a-entity>
           <a-entity id="right-controller" meta-touch-controls="hand: right; model: true" raycaster="objects: .interactive; far: 14; showLine: false" cursor="rayOrigin: entity; fuse: false; downEvents: triggerdown; upEvents: triggerup"></a-entity>
         </a-entity>
-        <a-entity id="data-swarm"></a-entity>
-        <a-entity id="news-root"></a-entity>
-        <a-entity id="exit-root" visible="false"></a-entity>
+        <a-entity id="data-swarm"></a-entity><a-entity id="news-root"></a-entity><a-entity id="exit-root" visible="false"></a-entity>
         <a-entity id="left-pointer" visible="false" geometry="primitive: triangle; vertexA: 0 0.022 0; vertexB: -0.016 -0.014 0; vertexC: 0.016 -0.014 0" material="color: #8eb8ff; shader: flat; side: double; depthTest: false"></a-entity>
         <a-entity id="right-pointer" visible="false" geometry="primitive: triangle; vertexA: 0 0.022 0; vertexB: -0.016 -0.014 0; vertexC: 0.016 -0.014 0" material="color: #ffffff; shader: flat; side: double; depthTest: false"></a-entity>
         <a-entity id="mouse-cursor" cursor="rayOrigin: mouse; fuse: false" raycaster="objects: .interactive; far: 18"></a-entity>
       </a-scene>
-
-      <section id="start-screen" aria-labelledby="title">
-        <div class="start-panel">
-          <div class="version">ANNIKA BRYCHZY · NACHRICHTENRAUM 2</div>
-          <h1 id="title">Nachrichtenraum 2</h1>
-          <p class="intro">Politischer Raum · Meme Raum · Handyraum. WebXR für Meta Quest: beide Controller können einzelne Nachrichten anvisieren, anhalten und schließen.</p>
-          <div class="actions">
-            <button id="vr-button" class="primary" type="button" disabled>IN VR STARTEN</button>
-            <button id="browser-button" type="button" disabled>IM BROWSER STARTEN</button>
-            <button id="install-button" type="button" hidden>INSTALLIEREN</button>
-          </div>
-          <dl class="controls">
-            <div><dt>Linker Stick</dt><dd>bewegen</dd></div>
-            <div><dt>Rechter Stick</dt><dd>30° drehen</dd></div>
-            <div><dt>Trigger</dt><dd>News anhalten</dd></div>
-            <div><dt>X auf Kachel</dt><dd>schließen</dd></div>
-          </dl>
-          <p class="install-hint">Quest Browser: Seite öffnen und „In VR starten“ wählen. Unten rechts erscheint zusätzlich das WebXR/VR-Symbol der A-Frame-Seite.</p>
-        </div>
-      </section>
-
-      <section id="hud" aria-live="polite">
-        <div><span id="phase-label">BEREIT</span><span id="timer">00:00</span></div>
-        <div><span id="message-count">0 NEWS</span><span id="feed-status">RSS WIRD GELADEN</span></div>
-      </section>
+      <section id="start-screen" aria-labelledby="title"><div class="start-panel"><div class="version">ANNIKA BRYCHZY · NACHRICHTENRAUM 2</div><h1 id="title">Nachrichtenraum 2</h1><p class="intro">Politischer Raum · Meme Raum · Handyraum · Overload Raum. WebXR für Meta Quest.</p><div class="actions"><button id="vr-button" class="primary" type="button" disabled>IN VR STARTEN</button><button id="browser-button" type="button" disabled>IM BROWSER STARTEN</button><button id="install-button" type="button" hidden>INSTALLIEREN</button></div><dl class="controls"><div><dt>Linker Stick</dt><dd>bewegen</dd></div><div><dt>Rechter Stick</dt><dd>30° drehen</dd></div><div><dt>Trigger</dt><dd>News anhalten/schließen</dd></div><div><dt>Anzielen</dt><dd>Karte bleibt lesbar</dd></div></dl></div></section>
+      <section id="hud" aria-live="polite"><div><span id="phase-label">BEREIT</span><span id="timer">00:00</span></div><div><span id="message-count">0 NEWS</span><span id="feed-status">RSS WIRD GELADEN</span></div></section>
       <button id="pause-all" type="button">ALLE ANHALTEN</button>
-      <section id="exit-overlay" class="exit-overlay" hidden>
-        <div class="exit-panel">
-          <p>Raum verlassen?</p>
-          <div>
-            <button id="exit-yes" type="button">Ja</button>
-            <button id="exit-no" type="button">Nein</button>
-          </div>
-        </div>
-      </section>
-      <div id="desktop-help">KLICK: NEWS ANHALTEN · X: SCHLIESSEN · WASD: BEWEGEN</div>
-      <div id="toast" role="status" aria-live="polite"></div>
-      <div class="project-left">digitaler raum</div>
-      <div class="project-right">Annika Brychzy</div>
+      <section id="exit-overlay" class="exit-overlay" hidden><div class="exit-panel"><p>Raum verlassen?</p><div><button id="exit-yes" type="button">Ja</button><button id="exit-no" type="button">Nein</button></div></div></section>
+      <div id="desktop-help">KLICK/TRIGGER: SCHLIESSEN · ANZIELEN: LESEN · WASD: BEWEGEN</div><div id="toast" role="status" aria-live="polite"></div><div class="project-left">digitaler raum</div><div class="project-right">Annika Brychzy</div>
     </main>
-    <script type="module" src="./main.js?v=rooms-2"></script>
+    <script type="module" src="./main.js?v=rooms-4"></script>
+    <script type="module" src="./room-bg.js?v=rooms-4"></script>
   </body>
 </html>
