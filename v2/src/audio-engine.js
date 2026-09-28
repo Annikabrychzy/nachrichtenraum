@@ -11,7 +11,7 @@ export class AudioEngine {
       if (!Context) return;
       this.context = new Context({ latencyHint: "interactive" });
       this.master = this.context.createGain();
-      this.master.gain.value = 0.34;
+      this.master.gain.value = 0.36;
       this.master.connect(this.context.destination);
       this.noiseBuffer = this.createNoiseBuffer();
     }
@@ -22,9 +22,7 @@ export class AudioEngine {
     const length = Math.floor(this.context.sampleRate * 0.24);
     const buffer = this.context.createBuffer(1, length, this.context.sampleRate);
     const data = buffer.getChannelData(0);
-    for (let index = 0; index < length; index += 1) {
-      data[index] = (Math.random() * 2 - 1) * (1 - index / length);
-    }
+    for (let index = 0; index < length; index += 1) data[index] = (Math.random() * 2 - 1) * (1 - index / length);
     return buffer;
   }
 
@@ -43,30 +41,52 @@ export class AudioEngine {
     return panner;
   }
 
-  plop(pitch = 1, position) {
-    this.notify(pitch, position);
+  tone({ frequency, duration = 0.18, gain = 0.13, type = "sine", delay = 0, pitch = 1, output }) {
+    if (!this.context || this.context.state !== "running") return;
+    const start = this.context.currentTime + delay;
+    const oscillator = this.context.createOscillator();
+    const volume = this.context.createGain();
+    oscillator.type = type;
+    oscillator.frequency.setValueAtTime(frequency * pitch, start);
+    oscillator.frequency.exponentialRampToValueAtTime(frequency * pitch * 1.04, start + Math.min(0.05, duration * 0.45));
+    volume.gain.setValueAtTime(0.0001, start);
+    volume.gain.exponentialRampToValueAtTime(gain, start + 0.012);
+    volume.gain.exponentialRampToValueAtTime(0.0001, start + duration);
+    oscillator.connect(volume);
+    volume.connect(output || this.master);
+    oscillator.start(start);
+    oscillator.stop(start + duration + 0.06);
   }
 
-  notify(pitch = 1, position) {
+  plop(pitch = 1, position) {
+    if (pitch >= 1.42) this.push(pitch, position);
+    else if (pitch >= 1.08) this.meme(pitch, position);
+    else this.news(pitch, position);
+  }
+
+  news(pitch = 1, position) {
     if (!this.context || this.context.state !== "running") return;
-    const now = this.context.currentTime;
     const output = this.outputAt(position);
-    const notes = [880, 1174];
-    notes.forEach((frequency, index) => {
-      const start = now + index * 0.055;
-      const oscillator = this.context.createOscillator();
-      const gain = this.context.createGain();
-      oscillator.type = "sine";
-      oscillator.frequency.setValueAtTime(frequency * pitch, start);
-      oscillator.frequency.exponentialRampToValueAtTime(frequency * 1.08 * pitch, start + 0.035);
-      gain.gain.setValueAtTime(0.0001, start);
-      gain.gain.exponentialRampToValueAtTime(0.15, start + 0.008);
-      gain.gain.exponentialRampToValueAtTime(0.0001, start + 0.16);
-      oscillator.connect(gain);
-      gain.connect(output);
-      oscillator.start(start);
-      oscillator.stop(start + 0.18);
-    });
+    this.tone({ frequency: 146, duration: 0.34, gain: 0.18, type: "sawtooth", pitch, output });
+    this.tone({ frequency: 220, duration: 0.26, gain: 0.1, type: "sine", delay: 0.045, pitch, output });
+    this.tone({ frequency: 82, duration: 0.42, gain: 0.07, type: "sine", delay: 0.02, pitch, output });
+  }
+
+  meme(pitch = 1, position) {
+    if (!this.context || this.context.state !== "running") return;
+    const output = this.outputAt(position);
+    const sets = [[523, 659, 784, 1046], [587, 740, 988, 1175], [659, 880, 1108, 1318], [494, 740, 988, 1480]];
+    const notes = sets[Math.floor(Math.random() * sets.length)];
+    notes.forEach((frequency, index) => this.tone({ frequency, duration: 0.18, gain: 0.13, type: "triangle", delay: index * 0.045, pitch, output }));
+    this.tone({ frequency: notes.at(-1) * 1.25, duration: 0.14, gain: 0.08, type: "sine", delay: 0.22, pitch, output });
+  }
+
+  push(pitch = 1, position) {
+    if (!this.context || this.context.state !== "running") return;
+    const output = this.outputAt(position);
+    this.tone({ frequency: 1480, duration: 0.13, gain: 0.18, type: "sine", pitch, output });
+    this.tone({ frequency: 1975, duration: 0.17, gain: 0.13, type: "sine", delay: 0.075, pitch, output });
+    this.tone({ frequency: 2960, duration: 0.09, gain: 0.055, type: "sine", delay: 0.15, pitch, output });
   }
 
   close(pitch = 1, position) {
