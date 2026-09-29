@@ -62,6 +62,19 @@ function pulse(cursorEl, strength = 0.35, duration = 55) {
   else if (actuator?.playEffect) actuator.playEffect("dual-rumble", { duration, strongMagnitude: strength, weakMagnitude: strength });
 }
 
+function memeEmoji(message) {
+  const text = `${message.title} ${message.excerpt}`.toLowerCase();
+  if (text.includes("cry") || text.includes("sad")) return "😭";
+  if (text.includes("laugh") || text.includes("lol") || text.includes("funny")) return "😂";
+  if (text.includes("fail") || text.includes("wtf") || text.includes("confused")) return "😳";
+  if (text.includes("happy") || text.includes("congrat")) return "🥳";
+  if (text.includes("food") || text.includes("drink")) return "🍕";
+  if (text.includes("fashion") || text.includes("beauty")) return "💅";
+  if (text.includes("gaming")) return "🎮";
+  if (text.includes("action")) return "🏃";
+  return "😵‍💫";
+}
+
 export function isCloseHit(uv) { return Boolean(uv); }
 
 export class CardPool {
@@ -112,17 +125,6 @@ export class CardPool {
     this.onClose(slot);
   }
 
-  pressIntersection(intersection, cursorEl) {
-    const slot = intersection?.object?.userData?.slot;
-    if (!slot?.active) return false;
-    const now = performance.now();
-    if (now - slot.pressedAt < 180) return false;
-    slot.pressedAt = now;
-    pulse(cursorEl, 0.65, 65);
-    this.onClose(slot);
-    return true;
-  }
-
   draw(slot, message) {
     const { context } = slot;
     const source = String(message.source || "NEWS").toUpperCase();
@@ -132,39 +134,50 @@ export class CardPool {
       const stripes = ["#ff00b8", "#00ddff", "#ffe900", "#75ff40", "#ff7700", "#8b5cf6"];
       const gradient = context.createLinearGradient(0, 0, 512, 256);
       stripes.forEach((color, index) => gradient.addColorStop(index / (stripes.length - 1), color));
-      context.fillStyle = "#090018";
-      context.fillRect(0, 0, 512, 256);
-      context.globalAlpha = 0.74;
       context.fillStyle = gradient;
       context.fillRect(0, 0, 512, 256);
-      context.globalAlpha = 1;
-      context.fillStyle = "rgba(10, 0, 24, 0.78)";
-      context.beginPath();
-      context.roundRect(18, 18, 476, 220, 28);
-      context.fill();
-      context.strokeStyle = stripes[Math.floor(Math.random() * stripes.length)];
-      context.lineWidth = 7;
-      context.stroke();
-      for (let i = 0; i < 18; i += 1) {
-        context.fillStyle = stripes[i % stripes.length];
-        context.globalAlpha = 0.34;
+      context.fillStyle = "rgba(255,255,255,0.16)";
+      for (let i = 0; i < 26; i += 1) {
         context.beginPath();
-        context.arc(36 + Math.random() * 440, 34 + Math.random() * 188, 8 + Math.random() * 22, 0, Math.PI * 2);
+        context.arc(20 + Math.random() * 472, 18 + Math.random() * 220, 10 + Math.random() * 34, 0, Math.PI * 2);
         context.fill();
       }
-      context.globalAlpha = 1;
-      context.fillStyle = "#fff7ff";
-      context.font = "900 18px Arial";
-      context.fillText("GIPHY · MEME-RAUM", 34, 52);
-      context.fillStyle = "#ffe900";
-      context.font = "900 54px Arial";
-      context.fillText("MEME", 34, 112);
+      context.fillStyle = "rgba(8, 0, 22, 0.68)";
+      context.beginPath();
+      context.roundRect(20, 18, 472, 220, 30);
+      context.fill();
+      context.strokeStyle = stripes[Math.floor(Math.random() * stripes.length)];
+      context.lineWidth = 8;
+      context.stroke();
+
+      const poster = context.createLinearGradient(38, 48, 218, 218);
+      poster.addColorStop(0, "#fff7ff");
+      poster.addColorStop(0.5, stripes[Math.floor(Math.random() * stripes.length)]);
+      poster.addColorStop(1, "#120022");
+      context.fillStyle = poster;
+      context.beginPath();
+      context.roundRect(38, 48, 180, 160, 24);
+      context.fill();
+      context.strokeStyle = "rgba(255,255,255,.86)";
+      context.lineWidth = 5;
+      context.stroke();
+      context.font = "900 76px Arial";
+      context.textAlign = "center";
+      context.textBaseline = "middle";
       context.fillStyle = "#ffffff";
-      context.font = "900 30px Arial";
-      wrapText(context, message.title, 405, 2).forEach((line, index) => context.fillText(line, 34, 154 + index * 34));
-      context.fillStyle = "#e9d5ff";
+      context.fillText(memeEmoji(message), 128, 125);
+      context.textAlign = "left";
+      context.textBaseline = "alphabetic";
+
+      context.fillStyle = "#fff7ff";
+      context.font = "900 15px Arial";
+      context.fillText("GIPHY · FEELS", 238, 55);
+      context.fillStyle = "#ffe900";
+      context.font = "900 34px Arial";
+      wrapText(context, message.title, 220, 3).forEach((line, index) => context.fillText(line, 238, 98 + index * 36));
+      context.fillStyle = "#ffffff";
       context.font = "700 15px Arial";
-      wrapText(context, message.excerpt, 395, 2).forEach((line, index) => context.fillText(line, 34, 218 + index * 18));
+      wrapText(context, message.excerpt, 225, 3).forEach((line, index) => context.fillText(line, 238, 198 + index * 18));
       context.fillStyle = "rgba(0, 0, 0, 0.54)";
       context.beginPath();
       context.roundRect(436, 31, 40, 40, 13);
@@ -232,65 +245,9 @@ export class CardPool {
     slot.texture.needsUpdate = true;
   }
 
-  randomPosition(cameraPosition) {
-    const radius = this.THREE.MathUtils.lerp(2.25, 5.9, Math.pow(Math.random(), 0.74));
-    const theta = Math.random() * Math.PI * 2;
-    const vertical = this.THREE.MathUtils.lerp(-0.72, 0.78, Math.random());
-    const planar = Math.sqrt(1 - vertical * vertical);
-    return new this.THREE.Vector3(cameraPosition.x + Math.cos(theta) * planar * radius, cameraPosition.y + vertical * radius * 0.52, cameraPosition.z + Math.sin(theta) * planar * radius);
-  }
-
-  acquire(message, cameraPosition, now = performance.now(), phase = {}) {
-    let slot = this.slots.find((candidate) => !candidate.active);
-    if (!slot && this.slots.length < this.max) slot = this.createSlot();
-    if (!slot) return null;
-    slot.active = true;
-    slot.paused = false;
-    slot.message = message;
-    slot.pitch = this.THREE.MathUtils.randFloat(0.84, 1.18);
-    slot.wave = Math.random() * Math.PI * 2;
-    const motion = phase.motion || 0.6;
-    const flyChance = motion > 5 ? 0.92 : motion > 3 ? 0.78 : motion > 1.5 ? 0.46 : 0.18;
-    slot.motionKind = Math.random() < flyChance ? "flyby" : (Math.random() < 0.72 ? "wave" : "still");
-    slot.bornAt = now;
-    slot.hoveredBy.clear();
-    this.draw(slot, message);
-    const position = this.randomPosition(cameraPosition);
-    slot.entity.object3D.position.copy(position);
-    slot.entity.object3D.lookAt(cameraPosition);
-    slot.entity.object3D.rotateZ(this.THREE.MathUtils.randFloatSpread(0.12));
-    slot.baseScale = this.THREE.MathUtils.randFloat(0.92, 1.08);
-    slot.entity.object3D.scale.setScalar(slot.baseScale * 0.12);
-    const radial = position.clone().sub(cameraPosition).normalize();
-    if (slot.motionKind === "flyby") {
-      slot.velocity.copy(radial).multiplyScalar(-this.THREE.MathUtils.randFloat(0.22, 0.52));
-      slot.velocity.x += this.THREE.MathUtils.randFloatSpread(0.18);
-      slot.velocity.y += this.THREE.MathUtils.randFloatSpread(0.16);
-      slot.velocity.z += this.THREE.MathUtils.randFloatSpread(0.18);
-    } else if (slot.motionKind === "wave") {
-      slot.velocity.set(-radial.z, this.THREE.MathUtils.randFloatSpread(0.38), radial.x).normalize().multiplyScalar(this.THREE.MathUtils.randFloat(0.07, 0.19));
-    } else {
-      slot.velocity.set(-radial.z, this.THREE.MathUtils.randFloatSpread(0.1), radial.x).normalize().multiplyScalar(this.THREE.MathUtils.randFloat(0.006, 0.024));
-    }
-    slot.entity.object3D.visible = true;
-    slot.mesh.raycast = slot.raycast;
-    slot.entity.classList.add("interactive");
-    this.active.add(slot);
-    this.refreshColor(slot);
-    return slot;
-  }
-
-  release(slot) {
-    if (!slot?.active) return;
-    slot.active = false;
-    slot.paused = false;
-    slot.hoveredBy.clear();
-    slot.entity.object3D.visible = false;
-    slot.entity.object3D.scale.setScalar(1);
-    slot.mesh.raycast = () => {};
-    slot.entity.classList.remove("interactive");
-    this.active.delete(slot);
-  }
+  randomPosition(cameraPosition) { const radius = this.THREE.MathUtils.lerp(2.25, 5.9, Math.pow(Math.random(), 0.74)); const theta = Math.random() * Math.PI * 2; const vertical = this.THREE.MathUtils.lerp(-0.72, 0.78, Math.random()); const planar = Math.sqrt(1 - vertical * vertical); return new this.THREE.Vector3(cameraPosition.x + Math.cos(theta) * planar * radius, cameraPosition.y + vertical * radius * 0.52, cameraPosition.z + Math.sin(theta) * planar * radius); }
+  acquire(message, cameraPosition, now = performance.now(), phase = {}) { let slot = this.slots.find((candidate) => !candidate.active); if (!slot && this.slots.length < this.max) slot = this.createSlot(); if (!slot) return null; slot.active = true; slot.paused = false; slot.message = message; slot.pitch = this.THREE.MathUtils.randFloat(0.84, 1.18); slot.wave = Math.random() * Math.PI * 2; const motion = phase.motion || 0.6; const flyChance = motion > 5 ? 0.92 : motion > 3 ? 0.78 : motion > 1.5 ? 0.46 : 0.18; slot.motionKind = Math.random() < flyChance ? "flyby" : (Math.random() < 0.72 ? "wave" : "still"); slot.bornAt = now; slot.hoveredBy.clear(); this.draw(slot, message); const position = this.randomPosition(cameraPosition); slot.entity.object3D.position.copy(position); slot.entity.object3D.lookAt(cameraPosition); slot.entity.object3D.rotateZ(this.THREE.MathUtils.randFloatSpread(0.12)); slot.baseScale = this.THREE.MathUtils.randFloat(0.92, 1.08); slot.entity.object3D.scale.setScalar(slot.baseScale * 0.12); const radial = position.clone().sub(cameraPosition).normalize(); if (slot.motionKind === "flyby") { slot.velocity.copy(radial).multiplyScalar(-this.THREE.MathUtils.randFloat(0.22, 0.52)); slot.velocity.x += this.THREE.MathUtils.randFloatSpread(0.18); slot.velocity.y += this.THREE.MathUtils.randFloatSpread(0.16); slot.velocity.z += this.THREE.MathUtils.randFloatSpread(0.18); } else if (slot.motionKind === "wave") { slot.velocity.set(-radial.z, this.THREE.MathUtils.randFloatSpread(0.38), radial.x).normalize().multiplyScalar(this.THREE.MathUtils.randFloat(0.07, 0.19)); } else { slot.velocity.set(-radial.z, this.THREE.MathUtils.randFloatSpread(0.1), radial.x).normalize().multiplyScalar(this.THREE.MathUtils.randFloat(0.006, 0.024)); } slot.entity.object3D.visible = true; slot.mesh.raycast = slot.raycast; slot.entity.classList.add("interactive"); this.active.add(slot); this.refreshColor(slot); return slot; }
+  release(slot) { if (!slot?.active) return; slot.active = false; slot.paused = false; slot.hoveredBy.clear(); slot.entity.object3D.visible = false; slot.entity.object3D.scale.setScalar(1); slot.mesh.raycast = () => {}; slot.entity.classList.remove("interactive"); this.active.delete(slot); }
   releaseAll() { for (const slot of [...this.active]) this.release(slot); }
   makeSpace(count) { while (this.size > this.max - count) { const slot = [...this.active].find((candidate) => !candidate.paused && !candidate.hoveredBy.size) || [...this.active][0]; if (!slot) break; this.release(slot); } }
   toggle(slot) { if (!slot?.active) return false; slot.paused = !slot.paused; this.refreshColor(slot); return slot.paused; }
