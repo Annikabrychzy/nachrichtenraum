@@ -233,7 +233,7 @@ export class CardPool {
   }
 
   randomPosition(cameraPosition) {
-    const radius = this.THREE.MathUtils.lerp(2.25, 5.6, Math.pow(Math.random(), 0.78));
+    const radius = this.THREE.MathUtils.lerp(2.25, 5.9, Math.pow(Math.random(), 0.74));
     const theta = Math.random() * Math.PI * 2;
     const vertical = this.THREE.MathUtils.lerp(-0.72, 0.78, Math.random());
     const planar = Math.sqrt(1 - vertical * vertical);
@@ -250,7 +250,8 @@ export class CardPool {
     slot.pitch = this.THREE.MathUtils.randFloat(0.84, 1.18);
     slot.wave = Math.random() * Math.PI * 2;
     const motion = phase.motion || 0.6;
-    slot.motionKind = Math.random() < Math.min(0.86, 0.18 + motion * 0.16) ? (motion > 3 && Math.random() < 0.7 ? "flyby" : "wave") : "still";
+    const flyChance = motion > 5 ? 0.92 : motion > 3 ? 0.78 : motion > 1.5 ? 0.46 : 0.18;
+    slot.motionKind = Math.random() < flyChance ? "flyby" : (Math.random() < 0.72 ? "wave" : "still");
     slot.bornAt = now;
     slot.hoveredBy.clear();
     this.draw(slot, message);
@@ -262,12 +263,12 @@ export class CardPool {
     slot.entity.object3D.scale.setScalar(slot.baseScale * 0.12);
     const radial = position.clone().sub(cameraPosition).normalize();
     if (slot.motionKind === "flyby") {
-      slot.velocity.copy(radial).multiplyScalar(-this.THREE.MathUtils.randFloat(0.16, 0.34));
-      slot.velocity.x += this.THREE.MathUtils.randFloatSpread(0.12);
-      slot.velocity.y += this.THREE.MathUtils.randFloatSpread(0.1);
-      slot.velocity.z += this.THREE.MathUtils.randFloatSpread(0.12);
+      slot.velocity.copy(radial).multiplyScalar(-this.THREE.MathUtils.randFloat(0.22, 0.52));
+      slot.velocity.x += this.THREE.MathUtils.randFloatSpread(0.18);
+      slot.velocity.y += this.THREE.MathUtils.randFloatSpread(0.16);
+      slot.velocity.z += this.THREE.MathUtils.randFloatSpread(0.18);
     } else if (slot.motionKind === "wave") {
-      slot.velocity.set(-radial.z, this.THREE.MathUtils.randFloatSpread(0.34), radial.x).normalize().multiplyScalar(this.THREE.MathUtils.randFloat(0.055, 0.16));
+      slot.velocity.set(-radial.z, this.THREE.MathUtils.randFloatSpread(0.38), radial.x).normalize().multiplyScalar(this.THREE.MathUtils.randFloat(0.07, 0.19));
     } else {
       slot.velocity.set(-radial.z, this.THREE.MathUtils.randFloatSpread(0.1), radial.x).normalize().multiplyScalar(this.THREE.MathUtils.randFloat(0.006, 0.024));
     }
@@ -294,7 +295,7 @@ export class CardPool {
   makeSpace(count) { while (this.size > this.max - count) { const slot = [...this.active].find((candidate) => !candidate.paused && !candidate.hoveredBy.size) || [...this.active][0]; if (!slot) break; this.release(slot); } }
   toggle(slot) { if (!slot?.active) return false; slot.paused = !slot.paused; this.refreshColor(slot); return slot.paused; }
   refreshColor(slot) { if (!slot.active) return; if (slot.hoveredBy.size) slot.material.color.set(0xd7eaff); else if (slot.paused) slot.material.color.set(0x86efac); else slot.material.color.set(0xffffff); }
-  update(delta, intensity, now, cameraPosition) { let index = 0; for (const slot of this.active) { if (!slot.paused && !slot.hoveredBy.size) { const age = (now - slot.bornAt) / 1000; const pop = Math.min(1, age / 0.34); const easeOutBack = 1 + 1.7 * Math.pow(pop - 1, 3) + 0.7 * Math.pow(pop - 1, 2); slot.entity.object3D.scale.setScalar((slot.baseScale || 1) * Math.max(0.12, easeOutBack)); if (slot.motionKind !== "still") slot.entity.object3D.position.addScaledVector(slot.velocity, delta * intensity); const waveStrength = slot.motionKind === "still" ? 0.00045 : slot.motionKind === "flyby" ? 0.0048 : 0.0026; slot.entity.object3D.position.y += Math.sin(age * (1.2 + intensity * 0.22) + slot.wave) * waveStrength * intensity; if (index % 3 === Math.floor(now / 160) % 3) { slot.entity.object3D.lookAt(cameraPosition); slot.entity.object3D.rotateZ(Math.sin(slot.wave + age * 0.5) * 0.03 * intensity); } const distance = slot.entity.object3D.position.distanceTo(cameraPosition); if (distance > 7.8 || distance < 0.82) { slot.entity.object3D.position.copy(this.randomPosition(cameraPosition)); slot.entity.object3D.lookAt(cameraPosition); } } else if (slot.hoveredBy.size) { slot.entity.object3D.lookAt(cameraPosition); } index += 1; } }
+  update(delta, intensity, now, cameraPosition) { let index = 0; for (const slot of this.active) { if (!slot.paused && !slot.hoveredBy.size) { const age = (now - slot.bornAt) / 1000; const pop = Math.min(1, age / 0.34); const easeOutBack = 1 + 1.7 * Math.pow(pop - 1, 3) + 0.7 * Math.pow(pop - 1, 2); slot.entity.object3D.scale.setScalar((slot.baseScale || 1) * Math.max(0.12, easeOutBack)); if (slot.motionKind !== "still") slot.entity.object3D.position.addScaledVector(slot.velocity, delta * intensity); const waveStrength = slot.motionKind === "still" ? 0.00045 : slot.motionKind === "flyby" ? 0.0062 : 0.0032; slot.entity.object3D.position.y += Math.sin(age * (1.2 + intensity * 0.22) + slot.wave) * waveStrength * intensity; if (index % 3 === Math.floor(now / 160) % 3) { slot.entity.object3D.lookAt(cameraPosition); slot.entity.object3D.rotateZ(Math.sin(slot.wave + age * 0.5) * 0.03 * intensity); } const distance = slot.entity.object3D.position.distanceTo(cameraPosition); if (distance > 8.2 || distance < 0.78) { slot.entity.object3D.position.copy(this.randomPosition(cameraPosition)); slot.entity.object3D.lookAt(cameraPosition); } } else if (slot.hoveredBy.size) { slot.entity.object3D.lookAt(cameraPosition); } index += 1; } }
   get size() { return this.active.size; }
   get pausedCount() { let count = 0; for (const slot of this.active) if (slot.paused) count += 1; return count; }
 }
