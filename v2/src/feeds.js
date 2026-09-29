@@ -15,6 +15,7 @@ export function normalizeMessage(item = {}) {
     source: clean(item.source || "RSS").toUpperCase().slice(0, 25),
     category: clean(item.category || "NEWS").toUpperCase().slice(0, 24),
     url: item.url || item.link || "",
+    image: item.image || item.gif || item.media || "",
   };
 }
 
