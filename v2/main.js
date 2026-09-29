@@ -71,6 +71,8 @@ function exitOpen() { return exitOverlay && !exitOverlay.hidden; }
 function press(controller) { const hit = controller.components.raycaster?.intersections?.[0]; if (exitOpen()) { const action = exitActionFromObject(hit?.object); if (action === "no") stayInRoom(); else goNextRoom(); return; } if (!hit) return; const slot = hit.object?.userData?.slot; if (slot) { closeCard(slot); return; } const action = exitActionFromObject(hit.object); if (action === "yes") goNextRoom(); if (action === "no") stayInRoom(); }
 function goNextRoom() { hideExitPrompt(); if (state.room === "overload") setRoom("rest"); else setRoom(nextRoom()); }
 function stayInRoom() { hideExitPrompt(); setRoom(state.room); }
+window.nachrichtenraumGoNextRoom = goNextRoom;
+window.nachrichtenraumStayInRoom = stayInRoom;
 function buildVrExitPrompt() { if (!exitRoot) return; exitRoot.dataset.ready = "true"; }
 function showVrExitPrompt() { buildVrExitPrompt(); if (exitRoot) exitRoot.setAttribute("visible", true); }
 async function init() { const loaded = await loadMessages(); messages = loaded.messages; feedStatus.textContent = loaded.rssCount ? `${loaded.rssCount} RSS-MELDUNGEN` : "RSS-FALLBACK"; cards = new CardPool({ THREE, root: cardsRoot, max: 340, onToggle: toggleCard, onClose: closeCard }); cardsRoot.object3D.visible = false; buildVrExitPrompt(); browserButton.disabled = false; vrButton.disabled = !navigator.xr; }
