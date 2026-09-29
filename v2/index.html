@@ -4,11 +4,11 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <meta name="theme-color" content="#000108" />
-    <meta name="description" content="Nachrichtenraum 2, eine für Meta Quest optimierte WebXR-Erfahrung von Annika Brychzy." />
-    <title>Nachrichtenraum 2</title>
+    <meta name="description" content="Raum 1, eine für Meta Quest optimierte WebXR-Erfahrung von Annika Brychzy." />
+    <title>Raum 1</title>
     <link rel="manifest" href="./manifest.webmanifest" />
     <link rel="icon" href="./icon.svg" type="image/svg+xml" />
-    <link rel="stylesheet" href="./styles.css?v=rooms-7" />
+    <link rel="stylesheet" href="./styles.css?v=rooms-8" />
     <script src="../vendor/aframe-v1.8.0.min.js"></script>
   </head>
   <body>
@@ -31,14 +31,14 @@
         <a-entity id="right-pointer" visible="false" geometry="primitive: triangle; vertexA: 0 0.022 0; vertexB: -0.016 -0.014 0; vertexC: 0.016 -0.014 0" material="color: #ffffff; shader: flat; side: double; depthTest: false"></a-entity>
         <a-entity id="mouse-cursor" cursor="rayOrigin: mouse; fuse: false" raycaster="objects: .interactive; far: 18"></a-entity>
       </a-scene>
-      <section id="start-screen" aria-labelledby="title"><div class="start-panel"><div class="version">ANNIKA BRYCHZY · NACHRICHTENRAUM 2</div><h1 id="title">Nachrichtenraum 2</h1><p class="intro">Politischer Raum · Meme Raum · Handyraum · Overload Raum</p><div class="actions"><button id="vr-button" class="primary" type="button" disabled>IN VR STARTEN</button><button id="browser-button" type="button" disabled>IM BROWSER STARTEN</button><button id="install-button" type="button" hidden>INSTALLIEREN</button></div><dl class="controls"><div><dt>Linker Stick</dt><dd>bewegen</dd></div><div><dt>Rechter Stick</dt><dd>30° drehen</dd></div><div><dt>Trigger</dt><dd>News anhalten/schließen</dd></div><div><dt>Anzielen</dt><dd>Karte bleibt lesbar</dd></div></dl></div></section>
+      <section id="start-screen" aria-labelledby="title"><div class="start-panel"><div class="version">ANNIKA BRYCHZY · DIGITALER RAUM</div><h1 id="title">Raum 1</h1><p class="intro">Politikraum · Meme Raum · Handyraum · Overload Raum</p><div class="actions"><button id="vr-button" class="primary" type="button" disabled>IN VR STARTEN</button><button id="browser-button" type="button" disabled>IM BROWSER STARTEN</button><button id="install-button" type="button" hidden>INSTALLIEREN</button></div><dl class="controls"><div><dt>Linker Stick</dt><dd>bewegen</dd></div><div><dt>Rechter Stick</dt><dd>30° drehen</dd></div><div><dt>Trigger</dt><dd>Karte schließen</dd></div><div><dt>Anzielen</dt><dd>Karte bleibt stehen</dd></div></dl></div></section>
       <section id="hud" aria-live="polite"><div><span id="phase-label">BEREIT</span><span id="timer">00:00</span></div><div><span id="message-count">0 NEWS</span><span id="feed-status">RSS WIRD GELADEN</span></div></section>
       <button id="pause-all" type="button">ALLE ANHALTEN</button>
       <section id="exit-overlay" class="exit-overlay" hidden><div class="exit-panel"><p>Möchten Sie diesen Raum verlassen?</p><div><button id="exit-yes" type="button">Ja</button><button id="exit-no" type="button">Nein</button></div></div></section>
       <section id="rest-note" hidden><p>Pause</p><span>Nicht jede Ablenkung ist Erholung.</span></section>
       <div id="desktop-help">KLICK/TRIGGER: SCHLIESSEN · ANZIELEN: LESEN · WASD: BEWEGEN</div><div id="toast" role="status" aria-live="polite"></div><div class="tw-warning">TW · sensible Themen · viele Reize</div><div class="project-left">digitaler raum</div><div class="project-right">Annika Brychzy</div>
     </main>
-    <script type="module" src="./main.js?v=rooms-7"></script>
-    <script type="module" src="./room-bg.js?v=neon-room-3"></script>
+    <script type="module" src="./main.js?v=rooms-8"></script>
+    <script type="module" src="./room-bg.js?v=neon-room-4"></script>
   </body>
 </html>
