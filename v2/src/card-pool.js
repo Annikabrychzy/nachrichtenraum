@@ -1,21 +1,21 @@
 const categoryColors = {
-  POLITIK: "#166534",
-  INNENPOLITIK: "#15803d",
-  AUSLANDSPOLITIK: "#167a46",
-  AUSLAND: "#167a46",
-  "WIRTSCHAFT & PREISE": "#0f766e",
-  WIRTSCHAFT: "#0f766e",
-  MIETEN: "#16a34a",
-  RENTE: "#22c55e",
-  "GESUNDHEIT & PSYCHE": "#14b8a6",
-  GESUNDHEIT: "#14b8a6",
-  "KLIMA & UMWELT": "#65a30d",
-  KLIMA: "#65a30d",
-  STUDIUM: "#4d7c0f",
-  "KARRIERE & STUDIUM": "#15803d",
-  KARRIERE: "#15803d",
-  NACHRICHTEN: "#16a34a",
-  NEWS: "#16a34a",
+  POLITIK: "#8eb8ff",
+  INNENPOLITIK: "#9db8ff",
+  AUSLANDSPOLITIK: "#7aa2ff",
+  AUSLAND: "#7aa2ff",
+  "WIRTSCHAFT & PREISE": "#7dd3fc",
+  WIRTSCHAFT: "#7dd3fc",
+  MIETEN: "#93c5fd",
+  RENTE: "#bfdbfe",
+  "GESUNDHEIT & PSYCHE": "#bae6fd",
+  GESUNDHEIT: "#bae6fd",
+  "KLIMA & UMWELT": "#a7f3d0",
+  KLIMA: "#a7f3d0",
+  STUDIUM: "#c7d2fe",
+  "KARRIERE & STUDIUM": "#bfdbfe",
+  KARRIERE: "#bfdbfe",
+  NACHRICHTEN: "#8eb8ff",
+  NEWS: "#8eb8ff",
   WHATSAPP: "#25d366",
   PUSH: "#22c55e",
   AUFMERKSAMKEIT: "#25d366",
@@ -28,7 +28,7 @@ const appIcons = {
   YOUTUBE: { icon: "▶", color: "#ef4444", label: "YouTube" },
   SNAPCHAT: { icon: "☻", color: "#facc15", label: "Snapchat" },
   DISCORD: { icon: "☾", color: "#5865f2", label: "Discord" },
-  NEWS: { icon: "!", color: "#16a34a", label: "Wichtige Nachricht" },
+  NEWS: { icon: "RSS", color: "#244c86", label: "Politik Archiv" },
   MEME: { icon: "★", color: "#ff00b8", label: "GIPHY Meme" },
 };
 
@@ -96,7 +96,7 @@ export class CardPool {
     const slot = { entity, mesh, material, texture, canvas, context, active: false, paused: false, hoveredBy: new Set(), velocity: new this.THREE.Vector3(), pitch: 1, wave: 0, bornAt: 0, pressedAt: 0, motionKind: "float", message: null, raycast: mesh.raycast };
     mesh.userData.slot = slot;
     entity.addEventListener("click", (event) => this.handleClick(slot, event));
-    entity.addEventListener("raycaster-intersected", (event) => { slot.hoveredBy.add(event.detail.el); this.refreshColor(slot); slot.entity.object3D.scale.setScalar((slot.baseScale || 1) * 1.035); });
+    entity.addEventListener("raycaster-intersected", (event) => { slot.hoveredBy.add(event.detail.el); this.refreshColor(slot); slot.entity.object3D.scale.setScalar((slot.baseScale || 1) * 1.055); });
     entity.addEventListener("raycaster-intersected-cleared", (event) => { slot.hoveredBy.delete(event.detail.el); if (!slot.hoveredBy.size) slot.entity.object3D.scale.setScalar(slot.baseScale || 1); this.refreshColor(slot); });
     this.slots.push(slot);
     return slot;
@@ -200,7 +200,7 @@ export class CardPool {
     context.roundRect(34, 34, 50, 50, 14);
     context.fill();
     context.fillStyle = "#ffffff";
-    context.font = "700 27px Arial";
+    context.font = appKey === "NEWS" ? "900 14px Arial" : "700 27px Arial";
     context.textAlign = "center";
     context.textBaseline = "middle";
     context.fillText(app.icon, 59, 60);
@@ -208,10 +208,10 @@ export class CardPool {
     context.textBaseline = "alphabetic";
     context.fillStyle = isPhone ? "#0f172a" : "#8eb8ff";
     context.font = "700 15px Arial";
-    context.fillText(isPhone ? app.label : String(message.source || "RSS ARCHIV"), 98, 55);
+    context.fillText(isPhone ? app.label : String(message.source || "Politik Archiv"), 98, 55);
     context.fillStyle = isPhone ? "#64748b" : "#9db8ff";
     context.font = "600 13px Arial";
-    context.fillText(isPhone ? "jetzt · wichtige Mitteilung" : "alte Beispielmeldung · RSS Archiv", 98, 76);
+    context.fillText(isPhone ? "jetzt · wichtige Mitteilung" : "alte Beispielmeldung · Politik Archiv", 98, 76);
     context.fillStyle = isPhone ? "#ecfdf5" : "rgba(255,255,255,.12)";
     context.beginPath();
     context.roundRect(436, 31, 40, 40, 13);
@@ -293,8 +293,8 @@ export class CardPool {
   releaseAll() { for (const slot of [...this.active]) this.release(slot); }
   makeSpace(count) { while (this.size > this.max - count) { const slot = [...this.active].find((candidate) => !candidate.paused && !candidate.hoveredBy.size) || [...this.active][0]; if (!slot) break; this.release(slot); } }
   toggle(slot) { if (!slot?.active) return false; slot.paused = !slot.paused; this.refreshColor(slot); return slot.paused; }
-  refreshColor(slot) { if (!slot.active) return; if (slot.hoveredBy.size) slot.material.color.set(0xd1fae5); else if (slot.paused) slot.material.color.set(0x86efac); else slot.material.color.set(0xffffff); }
-  update(delta, intensity, now, cameraPosition) { let index = 0; for (const slot of this.active) { if (!slot.paused) { const age = (now - slot.bornAt) / 1000; const pop = Math.min(1, age / 0.34); const easeOutBack = 1 + 1.7 * Math.pow(pop - 1, 3) + 0.7 * Math.pow(pop - 1, 2); slot.entity.object3D.scale.setScalar((slot.baseScale || 1) * Math.max(0.12, easeOutBack)); if (slot.motionKind !== "still") slot.entity.object3D.position.addScaledVector(slot.velocity, delta * intensity); const waveStrength = slot.motionKind === "still" ? 0.00045 : slot.motionKind === "flyby" ? 0.0048 : 0.0026; slot.entity.object3D.position.y += Math.sin(age * (1.2 + intensity * 0.22) + slot.wave) * waveStrength * intensity; if (index % 3 === Math.floor(now / 160) % 3) { slot.entity.object3D.lookAt(cameraPosition); slot.entity.object3D.rotateZ(Math.sin(slot.wave + age * 0.5) * 0.03 * intensity); } const distance = slot.entity.object3D.position.distanceTo(cameraPosition); if (distance > 7.8 || distance < 0.82) { slot.entity.object3D.position.copy(this.randomPosition(cameraPosition)); slot.entity.object3D.lookAt(cameraPosition); } } index += 1; } }
+  refreshColor(slot) { if (!slot.active) return; if (slot.hoveredBy.size) slot.material.color.set(0xd7eaff); else if (slot.paused) slot.material.color.set(0x86efac); else slot.material.color.set(0xffffff); }
+  update(delta, intensity, now, cameraPosition) { let index = 0; for (const slot of this.active) { if (!slot.paused && !slot.hoveredBy.size) { const age = (now - slot.bornAt) / 1000; const pop = Math.min(1, age / 0.34); const easeOutBack = 1 + 1.7 * Math.pow(pop - 1, 3) + 0.7 * Math.pow(pop - 1, 2); slot.entity.object3D.scale.setScalar((slot.baseScale || 1) * Math.max(0.12, easeOutBack)); if (slot.motionKind !== "still") slot.entity.object3D.position.addScaledVector(slot.velocity, delta * intensity); const waveStrength = slot.motionKind === "still" ? 0.00045 : slot.motionKind === "flyby" ? 0.0048 : 0.0026; slot.entity.object3D.position.y += Math.sin(age * (1.2 + intensity * 0.22) + slot.wave) * waveStrength * intensity; if (index % 3 === Math.floor(now / 160) % 3) { slot.entity.object3D.lookAt(cameraPosition); slot.entity.object3D.rotateZ(Math.sin(slot.wave + age * 0.5) * 0.03 * intensity); } const distance = slot.entity.object3D.position.distanceTo(cameraPosition); if (distance > 7.8 || distance < 0.82) { slot.entity.object3D.position.copy(this.randomPosition(cameraPosition)); slot.entity.object3D.lookAt(cameraPosition); } } else if (slot.hoveredBy.size) { slot.entity.object3D.lookAt(cameraPosition); } index += 1; } }
   get size() { return this.active.size; }
   get pausedCount() { let count = 0; for (const slot of this.active) if (slot.paused) count += 1; return count; }
 }
