@@ -37,7 +37,21 @@ function handleVrExitTrigger(event) {
   runExitAction(action === "no" ? "no" : "yes");
 }
 
+function bindButton(selector, action) {
+  const element = document.querySelector(selector);
+  if (!element || element.dataset.directExitReady) return;
+  element.dataset.directExitReady = "true";
+  element.object3D.userData.exitAction = action;
+  element.addEventListener("click", (event) => {
+    event.preventDefault?.();
+    event.stopPropagation?.();
+    runExitAction(action);
+  }, true);
+}
+
 function bindVrExitPatch() {
+  bindButton("#vr-exit-yes", "yes");
+  bindButton("#vr-exit-no", "no");
   for (const selector of ["#left-controller", "#right-controller"]) {
     const controller = document.querySelector(selector);
     if (!controller || controller.dataset.exitPatchReady) continue;
@@ -49,4 +63,4 @@ function bindVrExitPatch() {
 
 bindVrExitPatch();
 window.addEventListener("load", bindVrExitPatch);
-setInterval(bindVrExitPatch, 800);
+setInterval(bindVrExitPatch, 500);
