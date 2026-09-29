@@ -17,9 +17,14 @@ function exitActionFromObject(object) {
   return "";
 }
 
-function clickExitButton(action) {
-  const button = document.querySelector(action === "no" ? "#exit-no" : "#exit-yes");
-  button?.click();
+function runExitAction(action) {
+  if (action === "no") {
+    if (typeof window.nachrichtenraumStayInRoom === "function") window.nachrichtenraumStayInRoom();
+    else document.querySelector("#exit-no")?.click();
+    return;
+  }
+  if (typeof window.nachrichtenraumGoNextRoom === "function") window.nachrichtenraumGoNextRoom();
+  else document.querySelector("#exit-yes")?.click();
 }
 
 function handleVrExitTrigger(event) {
@@ -29,7 +34,7 @@ function handleVrExitTrigger(event) {
   const action = exitActionFromObject(hit?.object) || "yes";
   event.preventDefault?.();
   event.stopImmediatePropagation?.();
-  clickExitButton(action === "no" ? "no" : "yes");
+  runExitAction(action === "no" ? "no" : "yes");
 }
 
 function bindVrExitPatch() {
