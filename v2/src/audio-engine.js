@@ -89,6 +89,15 @@ export class AudioEngine {
     this.tone({ frequency: 2960, duration: 0.09, gain: 0.055, type: "sine", delay: 0.15, pitch, output });
   }
 
+  calm() {
+    if (!this.context || this.context.state !== "running") return;
+    const output = this.master;
+    const notes = [261.63, 329.63, 392.0, 523.25];
+    notes.forEach((frequency, index) => this.tone({ frequency, duration: 1.8, gain: 0.035, type: "sine", delay: index * 0.55, output }));
+    this.tone({ frequency: 783.99, duration: 0.38, gain: 0.018, type: "triangle", delay: 2.4, output });
+    this.tone({ frequency: 659.25, duration: 0.5, gain: 0.015, type: "triangle", delay: 3.15, output });
+  }
+
   close(pitch = 1, position) {
     if (!this.context || this.context.state !== "running" || !this.noiseBuffer) return;
     const now = this.context.currentTime;
