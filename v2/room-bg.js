@@ -37,9 +37,10 @@ function update() {
   if (label.includes("MEME")) room = "meme";
   if (label.includes("HANDY") || label.includes("PUSH")) room = "phone";
   if (label.includes("OVERLOAD")) room = "overload";
+  if (label.includes("PAUSE")) room = "rest";
   if (room !== currentRoom) draw(room);
   if (mesh) {
-    const speed = room === "meme" ? 0.0012 : room === "overload" ? 0.0018 : room === "phone" ? 0.00045 : 0.0002;
+    const speed = room === "meme" ? 0.0012 : room === "overload" ? 0.0018 : room === "phone" ? 0.00045 : room === "rest" ? 0.00012 : 0.0002;
     mesh.rotation.y += speed;
   }
 }
@@ -76,8 +77,6 @@ function drawNeonRoom({ overload = false } = {}) {
   radial(0.93, 0.31, 360, "rgba(139,92,246,.62)", "rgba(139,92,246,0)");
 
   const colors = ["#ff0050", "#ff7a00", "#ffe900", "#25ff4f", "#00ddff", "#2f6bff", "#ff00b8"];
-
-  // Broad neon panels: distributed around the 360 texture, not all pointing to one center.
   for (let i = 0; i < (overload ? 180 : 125); i += 1) {
     const zone = i % 7;
     const x = ((zone / 7) * w + Math.random() * 150 - 60 + w) % w;
@@ -99,8 +98,6 @@ function drawNeonRoom({ overload = false } = {}) {
     context.stroke();
     context.restore();
   }
-
-  // Soft bokeh blocks so it feels like a room with depth.
   for (let i = 0; i < (overload ? 70 : 46); i += 1) {
     const size = overload ? 42 + Math.random() * 110 : 34 + Math.random() * 92;
     context.fillStyle = colors[(i + 3) % colors.length] + (overload ? "42" : "30");
@@ -108,13 +105,42 @@ function drawNeonRoom({ overload = false } = {}) {
     context.lineWidth = 2;
     roundedRect(Math.random() * w, Math.random() * h, size, size * (0.45 + Math.random() * 0.9), 24);
   }
-
-  // Dark center haze prevents the image from feeling like a tunnel rushing into the face.
   const calm = context.createRadialGradient(w * 0.5, h * 0.5, 30, w * 0.5, h * 0.5, 260);
   calm.addColorStop(0, overload ? "rgba(0,0,0,.30)" : "rgba(0,0,0,.42)");
   calm.addColorStop(1, "rgba(0,0,0,0)");
   context.fillStyle = calm;
   context.fillRect(0, 0, w, h);
+}
+
+function drawRestRoom() {
+  const w = canvas.width;
+  const h = canvas.height;
+  const base = context.createLinearGradient(0, 0, 0, h);
+  base.addColorStop(0, "#ffffff");
+  base.addColorStop(0.55, "#f9fbff");
+  base.addColorStop(1, "#eef3f7");
+  context.fillStyle = base;
+  context.fillRect(0, 0, w, h);
+  radial(0.5, 0.48, 620, "rgba(255,255,255,.95)", "rgba(209,228,238,0)");
+  context.strokeStyle = "rgba(175,190,205,.16)";
+  context.lineWidth = 2;
+  for (let i = 0; i < 20; i += 1) {
+    const y = 80 + i * 29;
+    context.beginPath();
+    context.moveTo(0, y + Math.sin(i) * 12);
+    for (let x = 0; x <= w; x += 70) context.lineTo(x, y + Math.sin(x * 0.006 + i) * 10);
+    context.stroke();
+  }
+  for (let i = 0; i < 26; i += 1) {
+    const x = Math.random() * w;
+    const y = Math.random() * h;
+    const ww = 80 + Math.random() * 220;
+    const hh = 22 + Math.random() * 42;
+    context.fillStyle = "rgba(255,255,255,.52)";
+    context.strokeStyle = "rgba(172,190,204,.22)";
+    context.lineWidth = 1.5;
+    roundedRect(x, y, ww, hh, 24);
+  }
 }
 
 function draw(room) {
@@ -128,6 +154,8 @@ function draw(room) {
     drawNeonRoom();
   } else if (room === "overload") {
     drawNeonRoom({ overload: true });
+  } else if (room === "rest") {
+    drawRestRoom();
   } else if (room === "phone") {
     const base = context.createRadialGradient(w * 0.5, h * 0.46, 20, w * 0.5, h * 0.5, w * 0.75);
     base.addColorStop(0, "#103d1f");
