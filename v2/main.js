@@ -1,7 +1,7 @@
-import { AudioEngine } from "./src/audio-engine.js?v=rooms-6";
-import { CardPool } from "./src/card-pool.js?v=rooms-6";
-import { loadMessages, normalizeMessage } from "./src/feeds.js?v=rooms-6";
-import { phaseAt, cycleDuration } from "./src/timeline.js?v=rooms-6";
+import { AudioEngine } from "./src/audio-engine.js?v=rooms-8";
+import { CardPool } from "./src/card-pool.js?v=rooms-8";
+import { loadMessages, normalizeMessage } from "./src/feeds.js?v=rooms-8";
+import { phaseAt, cycleDuration } from "./src/timeline.js?v=rooms-8";
 
 const scene = document.querySelector("#xr-scene");
 const rig = document.querySelector("#rig");
@@ -54,14 +54,16 @@ let toastTimer;
 let initPromise;
 
 const memeMessages = [
+  ["GIPHY MEME", "Anime Reaction", "Anime, Reaction, What und LOL als bunter Ablenkungsreiz.", "MEME"],
+  ["GIPHY MEME", "Gaming Fail", "Gaming, Fail, Funny, Excited — sofort der nächste Reiz.", "MEME"],
+  ["GIPHY MEME", "Fashion / Beauty", "Glitzer, Outfit, Beauty, Style und schnelle Bilder.", "MEME"],
+  ["GIPHY MEME", "Food & Drink", "Food, Drink, Cooking, Eating — kurz schön, dann weiter.", "MEME"],
+  ["GIPHY MEME", "Art Design", "Bunte Formen, Design, Farben und Bewegung.", "MEME"],
   ["GIPHY MEME", "Action Reaction", "Action, Reaction, Funny, LOL und What the Fuck in einem Feed.", "MEME"],
-  ["GIPHY MEME", "Crying Meme", "Noch ein Clip, noch ein Reiz, noch ein kurzer Dopamin-Moment.", "MEME"],
-  ["GIPHY MEME", "Dancing / Music", "Alles blinkt, tanzt und bewegt sich weiter.", "MEME"],
-  ["GIPHY MEME", "Cute Animal", "Süß, bunt, ablenkend und sofort wieder weg.", "MEME"],
-  ["GIPHY MEME", "Confused Reaction", "Okay? LOL? WTF? Der Feed zieht weiter.", "MEME"],
-  ["GIPHY MEME", "Gaming Fail", "Gaming, Fail, Funny, Excited — alles gleichzeitig.", "MEME"],
-  ["GIPHY MEME", "Happy Reaction", "Ein kurzer schöner Reiz, direkt danach der nächste.", "MEME"],
-  ["GIPHY MEME", "Waiting / Excited", "Warten, lachen, weiter scrollen, nochmal klicken.", "MEME"],
+  ["GIPHY MEME", "Happy / Congratulations", "Happy, Congrats, Hug — Dopamin und direkt noch mehr.", "MEME"],
+  ["GIPHY MEME", "Sad / Crying", "Crying, Sad, Waiting — Gefühl als kurzer Clip.", "MEME"],
+  ["GIPHY MEME", "Laughing", "Laughing, Rating, Okay — alles blinkt und zieht weiter.", "MEME"],
+  ["GIPHY MEME", "No / Confused", "No, Confused, What? Noch ein Clip, noch ein Reiz.", "MEME"],
 ].map(([source, title, excerpt, category]) => normalizeMessage({ source, title, excerpt, category }));
 
 const phoneMessages = [
@@ -82,7 +84,7 @@ browserButton.disabled = false;
 vrButton.disabled = false;
 
 function showToast(text) { toastEl.textContent = text; toastEl.classList.add("is-visible"); clearTimeout(toastTimer); toastTimer = setTimeout(() => toastEl.classList.remove("is-visible"), 900); }
-function roomLabel(room) { return room === "news" ? "RSS ARCHIV" : room === "meme" ? "MEME-RAUM" : room === "phone" ? "HANDYRAUM" : room === "overload" ? "OVERLOAD-RAUM" : "PAUSE"; }
+function roomLabel(room) { return room === "news" ? "POLITIKRAUM" : room === "meme" ? "MEME-RAUM" : room === "phone" ? "HANDYRAUM" : room === "overload" ? "OVERLOAD-RAUM" : "PAUSE"; }
 function nextRoom() { return rooms[(rooms.indexOf(state.room) + 1) % rooms.length]; }
 function setRoom(room) {
   state.room = room;
@@ -115,12 +117,12 @@ function randomMessage() { const list = currentMessages(); return list[Math.floo
 function play(slot, pitch = 1) { const now = performance.now(); if (!slot || now - lastSound < 65) return; lastSound = now; slot.entity.object3D.getWorldPosition(camPos); audio.plop((slot.pitch || 1) * pitch, camPos); }
 function roomPitch() { return state.room === "news" ? 0.78 : state.room === "meme" ? 1.28 : state.room === "phone" ? 1.55 : 0.78 + Math.random() * 0.9; }
 function spawnCard(sound = true) { if (!cards || state.room === "rest" || cards.size >= cards.max) return; cameraEl.object3D.getWorldPosition(camPos); const phase = currentPhase ? { ...currentPhase, motion: state.room === "overload" ? currentPhase.motion + 2 : currentPhase.motion } : { motion: 1 }; const slot = cards.acquire(randomMessage(), camPos, performance.now(), phase); if (slot && sound) play(slot, roomPitch()); updateCount(); }
-function updateCount() { if (!cards) return; messageCount.textContent = `${cards.size} ${state.room === "meme" ? "MEMES" : state.room === "phone" ? "PUSH" : state.room === "overload" ? "OVERLOAD" : "NEWS"}`; }
-function closeCard(slot) { slot.entity.object3D.getWorldPosition(camPos); audio.close(slot.pitch, camPos); cards.release(slot); closedCount += 1; const extra = state.room === "news" ? 1 + Math.min(5, Math.floor(closedCount / 2)) : state.room === "overload" ? 7 + Math.min(18, Math.floor(closedCount / 2)) : 2 + Math.min(8, Math.floor(closedCount / 2)); cards.makeSpace(extra); for (let i = 0; i < extra; i += 1) spawnCard(true); showToast(state.room === "news" ? "MEHR NEWS" : state.room === "meme" ? "MEHR MEMES" : state.room === "phone" ? "MEHR PUSH" : "ALLES KOMMT ZURÜCK"); updateCount(); }
+function updateCount() { if (!cards) return; messageCount.textContent = `${cards.size} ${state.room === "meme" ? "MEMES" : state.room === "phone" ? "PUSH" : state.room === "overload" ? "OVERLOAD" : "MELDUNGEN"}`; }
+function closeCard(slot) { slot.entity.object3D.getWorldPosition(camPos); audio.close(slot.pitch, camPos); cards.release(slot); closedCount += 1; const extra = state.room === "news" ? 1 + Math.min(5, Math.floor(closedCount / 2)) : state.room === "overload" ? 7 + Math.min(18, Math.floor(closedCount / 2)) : 2 + Math.min(8, Math.floor(closedCount / 2)); cards.makeSpace(extra); for (let i = 0; i < extra; i += 1) spawnCard(true); showToast(state.room === "news" ? "MEHR POLITIK" : state.room === "meme" ? "MEHR MEMES" : state.room === "phone" ? "MEHR PUSH" : "ALLES KOMMT ZURÜCK"); updateCount(); }
 function toggleCard(slot) { slot.paused = !slot.paused; cards.refreshColor(slot); showToast(slot.paused ? "ANGEHALTEN" : "WEITER"); }
 function elapsed(now) { return (now - startedAt - pausedMs - (paused ? now - pauseStarted : 0)) / 1000; }
 function enterPhase(index, phase) { phaseIndex = index; currentPhase = phase; const label = `${roomLabel(state.room)} · ${phase.label}`; phaseLabel.textContent = label; vrPhase.setAttribute("value", label); lastSpawn = 0; cards.releaseAll(); cardsRoot.object3D.visible = true; const initial = state.room === "overload" ? phase.initial + 34 : phase.initial; for (let i = 0; i < initial; i += 1) setTimeout(() => spawnCard(true), i * 55); }
-function showRoomExit() { if (!exitOverlay.hidden) return; cards.releaseAll(); phaseLabel.textContent = "RAUM VERLASSEN"; vrPhase.setAttribute("value", "RAUM VERLASSEN"); exitOverlay.hidden = false; }
+function showRoomExit() { if (!exitOverlay.hidden) return; phaseLabel.textContent = "RAUM VERLASSEN"; vrPhase.setAttribute("value", "RAUM VERLASSEN"); exitOverlay.hidden = false; }
 function updatePhase(now) { if (state.room === "rest") return null; const e = elapsed(now); const p = phaseAt(e); timer.textContent = `00:${String(Math.min(cycleDuration, Math.floor(e))).padStart(2, "0")}`; if (p.complete) { showRoomExit(); return null; } if (p.index !== phaseIndex) enterPhase(p.index, p.phase); return p; }
 function updateLocomotion(delta) { if (!scene.is("vr-mode")) return; const y = Math.abs(leftAxis.y) > 0.14 ? leftAxis.y : 0; if (!y) return; cameraEl.object3D.getWorldDirection(forward); forward.y = 0; forward.normalize(); move.copy(forward).multiplyScalar(-y * delta * 1.35); rig.object3D.position.add(move); }
 function snapTurn(direction) { if (!scene.is("vr-mode")) return; cameraEl.object3D.getWorldPosition(oldCam); rig.object3D.rotation.y += THREE.MathUtils.degToRad(direction * -30); rig.object3D.updateMatrixWorld(true); cameraEl.object3D.getWorldPosition(newCam); rig.object3D.position.add(oldCam.sub(newCam)); }
@@ -133,7 +135,7 @@ async function start({ enterVR = false } = {}) { await ensureInit(); await audio
 browserButton.addEventListener("click", () => start());
 vrButton.addEventListener("click", () => start({ enterVR: true }));
 pauseAllButton.addEventListener("click", toggleAll);
-exitNoButton.addEventListener("click", () => { exitOverlay.hidden = true; if (state.room === "overload") setRoom("rest"); else setRoom(state.room); });
+exitNoButton.addEventListener("click", () => { exitOverlay.hidden = true; setRoom(state.room); });
 exitYesButton.addEventListener("click", () => { exitOverlay.hidden = true; if (state.room === "overload") setRoom("rest"); else setRoom(nextRoom()); });
 leftController.addEventListener("thumbstickmoved", (event) => { const x = event.detail.x || 0; leftAxis.set(0, event.detail.y || 0); if (Math.abs(x) > 0.68 && !snapLatch) { snapLatch = true; snapTurn(Math.sign(x)); } if (Math.abs(x) < 0.24) snapLatch = false; });
 rightController.addEventListener("thumbstickmoved", (event) => { const x = event.detail.x || 0; if (Math.abs(x) > 0.68 && !snapLatch) { snapLatch = true; snapTurn(Math.sign(x)); } if (Math.abs(x) < 0.24) snapLatch = false; });
@@ -144,6 +146,6 @@ rightController.addEventListener("thumbstickdown", () => press(rightController))
 scene.addEventListener("enter-vr", () => { vrHud.setAttribute("visible", true); if (!running) void start(); });
 scene.addEventListener("exit-vr", () => { vrHud.setAttribute("visible", false); });
 
-AFRAME.registerComponent("nachrichtenraum-loop", { tick(_time, deltaMs) { const now = performance.now(); const delta = Math.min(deltaMs / 1000, 0.05); if (!running || !cards || paused) return; updateLocomotion(delta); if (state.room === "rest") { if (now - lastCalm > 5200) { lastCalm = now; audio.calm(); } return; } if (!exitOverlay.hidden) return; const p = updatePhase(now); if (!p) return; const rate = THREE.MathUtils.lerp(p.phase.startRate, p.phase.endRate, p.progress); const extraTarget = state.room === "overload" ? 105 : 0; const target = Math.round(THREE.MathUtils.lerp(p.phase.initial, p.phase.target + extraTarget, p.progress)); if (now - lastSpawn > rate && cards.size < target) { lastSpawn = now; for (let i = 0; i < p.phase.batch && cards.size < target; i += 1) spawnCard(true); } cameraEl.object3D.getWorldPosition(camPos); cards.update(delta, p.phase.intensity + (state.room === "overload" ? 3.4 : 0), now, camPos); } });
+AFRAME.registerComponent("nachrichtenraum-loop", { tick(_time, deltaMs) { const now = performance.now(); const delta = Math.min(deltaMs / 1000, 0.05); if (!running || !cards || paused) return; updateLocomotion(delta); if (state.room === "rest") { if (now - lastCalm > 5200) { lastCalm = now; audio.calm(); } return; } const p = updatePhase(now); if (!exitOverlay.hidden) { cameraEl.object3D.getWorldPosition(camPos); cards.update(delta, (currentPhase?.intensity || 1.6) + (state.room === "overload" ? 3.4 : 0), now, camPos); return; } if (!p) return; const rate = THREE.MathUtils.lerp(p.phase.startRate, p.phase.endRate, p.progress); const extraTarget = state.room === "overload" ? 105 : 0; const target = Math.round(THREE.MathUtils.lerp(p.phase.initial, p.phase.target + extraTarget, p.progress)); if (now - lastSpawn > rate && cards.size < target) { lastSpawn = now; for (let i = 0; i < p.phase.batch && cards.size < target; i += 1) spawnCard(true); } cameraEl.object3D.getWorldPosition(camPos); cards.update(delta, p.phase.intensity + (state.room === "overload" ? 3.4 : 0), now, camPos); } });
 scene.setAttribute("nachrichtenraum-loop", "");
 setTimeout(() => void ensureInit(), 300);
