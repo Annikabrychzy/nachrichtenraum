@@ -40,7 +40,7 @@ function update() {
   if (label.includes("PAUSE")) room = "rest";
   if (room !== currentRoom) draw(room);
   if (mesh) {
-    const speed = room === "meme" ? 0.0012 : room === "overload" ? 0.0018 : room === "phone" ? 0.00045 : room === "rest" ? 0.00012 : 0.0002;
+    const speed = room === "meme" ? 0.00145 : room === "overload" ? 0.0021 : room === "phone" ? 0.00075 : room === "rest" ? 0.00012 : 0.00032;
     mesh.rotation.y += speed;
   }
 }
@@ -64,33 +64,33 @@ function drawNeonRoom({ overload = false } = {}) {
   const w = canvas.width;
   const h = canvas.height;
   const base = context.createRadialGradient(w * 0.5, h * 0.48, 20, w * 0.5, h * 0.5, w * 0.72);
-  base.addColorStop(0, overload ? "#240016" : "#18002e");
-  base.addColorStop(0.42, overload ? "#090010" : "#080018");
+  base.addColorStop(0, overload ? "#25011f" : "#260052");
+  base.addColorStop(0.42, overload ? "#08000d" : "#120022");
   base.addColorStop(1, "#010007");
   context.fillStyle = base;
   context.fillRect(0, 0, w, h);
 
-  radial(0.08, 0.23, 360, "rgba(255,0,80,.68)", "rgba(255,0,80,0)");
-  radial(0.26, 0.78, 400, "rgba(0,221,255,.52)", "rgba(0,221,255,0)");
-  radial(0.54, 0.22, 360, "rgba(117,255,64,.48)", "rgba(117,255,64,0)");
-  radial(0.78, 0.68, 430, "rgba(255,119,0,.56)", "rgba(255,119,0,0)");
-  radial(0.93, 0.31, 360, "rgba(139,92,246,.62)", "rgba(139,92,246,0)");
+  radial(0.08, 0.23, 430, "rgba(255,0,80,.82)", "rgba(255,0,80,0)");
+  radial(0.26, 0.78, 460, "rgba(0,221,255,.68)", "rgba(0,221,255,0)");
+  radial(0.54, 0.22, 430, "rgba(117,255,64,.62)", "rgba(117,255,64,0)");
+  radial(0.78, 0.68, 500, "rgba(255,119,0,.72)", "rgba(255,119,0,0)");
+  radial(0.93, 0.31, 430, "rgba(139,92,246,.78)", "rgba(139,92,246,0)");
 
-  const colors = ["#ff0050", "#ff7a00", "#ffe900", "#25ff4f", "#00ddff", "#2f6bff", "#ff00b8"];
-  for (let i = 0; i < (overload ? 180 : 125); i += 1) {
-    const zone = i % 7;
-    const x = ((zone / 7) * w + Math.random() * 150 - 60 + w) % w;
+  const colors = ["#ff0050", "#ff7a00", "#ffe900", "#25ff4f", "#00ddff", "#2f6bff", "#ff00b8", "#ffffff"];
+  for (let i = 0; i < (overload ? 220 : 165); i += 1) {
+    const zone = i % 8;
+    const x = ((zone / 8) * w + Math.random() * 180 - 70 + w) % w;
     const y = Math.random() * h;
-    const len = overload ? 120 + Math.random() * 360 : 90 + Math.random() * 260;
-    const thick = overload ? 7 + Math.random() * 24 : 6 + Math.random() * 18;
-    const angle = (Math.random() * 0.75 - 0.375) + (zone % 2 ? 0.15 : -0.15);
+    const len = overload ? 130 + Math.random() * 430 : 100 + Math.random() * 310;
+    const thick = overload ? 8 + Math.random() * 28 : 7 + Math.random() * 22;
+    const angle = (Math.random() * 0.9 - 0.45) + (zone % 2 ? 0.2 : -0.2);
     context.save();
     context.translate(x, y);
     context.rotate(angle);
     context.shadowColor = colors[i % colors.length];
-    context.shadowBlur = overload ? 24 : 18;
+    context.shadowBlur = overload ? 32 : 24;
     context.fillStyle = colors[i % colors.length];
-    context.strokeStyle = "rgba(255,255,255,.16)";
+    context.strokeStyle = "rgba(255,255,255,.22)";
     context.lineWidth = 1;
     context.beginPath();
     context.roundRect(-len / 2, -thick / 2, len, thick, thick / 2);
@@ -98,15 +98,15 @@ function drawNeonRoom({ overload = false } = {}) {
     context.stroke();
     context.restore();
   }
-  for (let i = 0; i < (overload ? 70 : 46); i += 1) {
-    const size = overload ? 42 + Math.random() * 110 : 34 + Math.random() * 92;
-    context.fillStyle = colors[(i + 3) % colors.length] + (overload ? "42" : "30");
-    context.strokeStyle = colors[i % colors.length] + (overload ? "66" : "44");
+  for (let i = 0; i < (overload ? 92 : 62); i += 1) {
+    const size = overload ? 46 + Math.random() * 130 : 38 + Math.random() * 112;
+    context.fillStyle = colors[(i + 3) % colors.length] + (overload ? "52" : "40");
+    context.strokeStyle = colors[i % colors.length] + (overload ? "77" : "55");
     context.lineWidth = 2;
     roundedRect(Math.random() * w, Math.random() * h, size, size * (0.45 + Math.random() * 0.9), 24);
   }
   const calm = context.createRadialGradient(w * 0.5, h * 0.5, 30, w * 0.5, h * 0.5, 260);
-  calm.addColorStop(0, overload ? "rgba(0,0,0,.30)" : "rgba(0,0,0,.42)");
+  calm.addColorStop(0, overload ? "rgba(0,0,0,.20)" : "rgba(0,0,0,.28)");
   calm.addColorStop(1, "rgba(0,0,0,0)");
   context.fillStyle = calm;
   context.fillRect(0, 0, w, h);
@@ -131,16 +131,6 @@ function drawRestRoom() {
     for (let x = 0; x <= w; x += 70) context.lineTo(x, y + Math.sin(x * 0.006 + i) * 10);
     context.stroke();
   }
-  for (let i = 0; i < 26; i += 1) {
-    const x = Math.random() * w;
-    const y = Math.random() * h;
-    const ww = 80 + Math.random() * 220;
-    const hh = 22 + Math.random() * 42;
-    context.fillStyle = "rgba(255,255,255,.52)";
-    context.strokeStyle = "rgba(172,190,204,.22)";
-    context.lineWidth = 1.5;
-    roundedRect(x, y, ww, hh, 24);
-  }
 }
 
 function draw(room) {
@@ -154,44 +144,51 @@ function draw(room) {
     drawNeonRoom();
   } else if (room === "overload") {
     drawNeonRoom({ overload: true });
+    radial(0.18, 0.18, 380, "rgba(28,55,104,.45)", "rgba(28,55,104,0)");
+    radial(0.76, 0.28, 360, "rgba(37,211,102,.34)", "rgba(37,211,102,0)");
   } else if (room === "rest") {
     drawRestRoom();
   } else if (room === "phone") {
-    const base = context.createRadialGradient(w * 0.5, h * 0.46, 20, w * 0.5, h * 0.5, w * 0.75);
-    base.addColorStop(0, "#103d1f");
-    base.addColorStop(0.5, "#020b05");
+    const base = context.createRadialGradient(w * 0.5, h * 0.46, 20, w * 0.5, h * 0.5, w * 0.78);
+    base.addColorStop(0, "#1aa14a");
+    base.addColorStop(0.36, "#0c421f");
+    base.addColorStop(0.68, "#031207");
     base.addColorStop(1, "#000602");
     context.fillStyle = base;
     context.fillRect(0, 0, w, h);
-    radial(0.18, 0.2, 430, "rgba(37,211,102,.5)", "rgba(37,211,102,0)");
-    radial(0.82, 0.72, 460, "rgba(12,141,61,.44)", "rgba(12,141,61,0)");
-    for (let i = 0; i < 110; i += 1) {
+    radial(0.18, 0.2, 500, "rgba(37,211,102,.72)", "rgba(37,211,102,0)");
+    radial(0.82, 0.72, 520, "rgba(134,239,172,.48)", "rgba(134,239,172,0)");
+    radial(0.5, 0.52, 420, "rgba(255,255,255,.12)", "rgba(255,255,255,0)");
+    for (let i = 0; i < 150; i += 1) {
       const x = Math.random() * w;
       const y = Math.random() * h;
-      const ww = 80 + Math.random() * 240;
-      const hh = 26 + Math.random() * 46;
-      context.fillStyle = i % 3 === 0 ? "rgba(37,211,102,.2)" : "rgba(255,255,255,.11)";
-      context.strokeStyle = "rgba(134,239,172,.38)";
+      const ww = 80 + Math.random() * 260;
+      const hh = 24 + Math.random() * 48;
+      context.fillStyle = i % 3 === 0 ? "rgba(37,211,102,.28)" : "rgba(255,255,255,.16)";
+      context.strokeStyle = "rgba(187,247,208,.48)";
       context.lineWidth = 2;
       roundedRect(x, y, ww, hh, 18);
     }
   } else {
-    const base = context.createRadialGradient(w * 0.5, h * 0.45, 20, w * 0.5, h * 0.5, w * 0.68);
-    base.addColorStop(0, "#1c3768");
-    base.addColorStop(0.48, "#061226");
+    const base = context.createRadialGradient(w * 0.5, h * 0.45, 20, w * 0.5, h * 0.5, w * 0.7);
+    base.addColorStop(0, "#2c5da9");
+    base.addColorStop(0.42, "#09214a");
+    base.addColorStop(0.72, "#020916");
     base.addColorStop(1, "#000108");
     context.fillStyle = base;
     context.fillRect(0, 0, w, h);
-    context.strokeStyle = "rgba(142,184,255,.17)";
+    radial(0.25, 0.35, 420, "rgba(96,165,250,.38)", "rgba(96,165,250,0)");
+    radial(0.76, 0.62, 480, "rgba(30,64,175,.42)", "rgba(30,64,175,0)");
+    context.strokeStyle = "rgba(142,184,255,.2)";
     context.lineWidth = 1;
     for (let r = 40; r < 920; r += 78) {
       context.beginPath();
       context.arc(w * 0.5, h * 0.5, r, 0, Math.PI * 2);
       context.stroke();
     }
-    for (let i = 0; i < 260; i += 1) {
-      context.fillStyle = "rgba(142,184,255,.32)";
-      context.fillRect(Math.random() * w, Math.random() * h, 1.4, 1.4);
+    for (let i = 0; i < 320; i += 1) {
+      context.fillStyle = "rgba(142,184,255,.38)";
+      context.fillRect(Math.random() * w, Math.random() * h, 1.5, 1.5);
     }
   }
   texture.needsUpdate = true;
