@@ -1,7 +1,7 @@
-import { AudioEngine } from "./src/audio-engine.js";
-import { CardPool } from "./src/card-pool.js";
-import { loadMessages, normalizeMessage } from "./src/feeds.js";
-import { phaseAt, cycleDuration } from "./src/timeline.js";
+import { AudioEngine } from "./src/audio-engine.js?v=rooms-6";
+import { CardPool } from "./src/card-pool.js?v=rooms-6";
+import { loadMessages, normalizeMessage } from "./src/feeds.js?v=rooms-6";
+import { phaseAt, cycleDuration } from "./src/timeline.js?v=rooms-6";
 
 const scene = document.querySelector("#xr-scene");
 const rig = document.querySelector("#rig");
