@@ -94,9 +94,12 @@ export class AudioEngine {
     if (!this.context || this.context.state !== "running") return;
     const output = this.master;
     const notes = [261.63, 329.63, 392.0, 523.25];
-    notes.forEach((frequency, index) => this.tone({ frequency, duration: 1.8, gain: 0.032, type: "sine", delay: index * 0.55, output }));
-    this.tone({ frequency: 783.99, duration: 0.38, gain: 0.016, type: "triangle", delay: 2.4, output });
-    this.tone({ frequency: 659.25, duration: 0.5, gain: 0.014, type: "triangle", delay: 3.15, output });
+    notes.forEach((frequency, index) => this.tone({ frequency, duration: 2.1, gain: 0.075, type: "sine", delay: index * 0.55, output }));
+    this.tone({ frequency: 783.99, duration: 0.42, gain: 0.048, type: "triangle", delay: 2.35, output });
+    this.tone({ frequency: 659.25, duration: 0.55, gain: 0.042, type: "triangle", delay: 3.05, output });
+    // Two soft high notes make a calm bird-like call between the piano tones.
+    this.tone({ frequency: 1660, duration: 0.13, gain: 0.028, type: "sine", delay: 3.7, output });
+    this.tone({ frequency: 2050, duration: 0.11, gain: 0.022, type: "sine", delay: 3.87, output });
   }
 
   close(pitch = 1, position) {
