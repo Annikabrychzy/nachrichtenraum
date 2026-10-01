@@ -69,8 +69,8 @@ async function toggleAll() { if (!running) return; const now = performance.now()
 function exitActionFromObject(object) { let current = object; while (current) { if (current.userData?.exitAction) return current.userData.exitAction; current = current.parent; } return ""; }
 function exitOpen() { return exitOverlay && !exitOverlay.hidden; }
 function press(controller) { const hit = controller.components.raycaster?.intersections?.[0]; if (exitOpen()) { const action = exitActionFromObject(hit?.object); if (action === "yes") goNextRoom(); else if (action === "no") stayInRoom(); return; } if (!hit) return; const slot = hit.object?.userData?.slot; if (slot) { closeCard(slot); return; } const action = exitActionFromObject(hit.object); if (action === "yes") goNextRoom(); if (action === "no") stayInRoom(); }
-function goNextRoom() { hideExitPrompt(); if (state.room === "rest") { running = false; cards?.releaseAll(); cardsRoot.object3D.visible = false; hud.classList.remove("is-visible"); desktopHelp.classList.remove("is-visible"); startScreen.classList.remove("is-hidden"); return; } if (state.room === "overload") setRoom("rest"); else setRoom(nextRoom()); }
-function stayInRoom() { hideExitPrompt(); setRoom(state.room); }
+function goNextRoom() { if (!exitOpen()) return; hideExitPrompt(); if (state.room === "rest") { running = false; cards?.releaseAll(); cardsRoot.object3D.visible = false; hud.classList.remove("is-visible"); desktopHelp.classList.remove("is-visible"); startScreen.classList.remove("is-hidden"); return; } if (state.room === "overload") setRoom("rest"); else setRoom(nextRoom()); }
+function stayInRoom() { if (!exitOpen()) return; hideExitPrompt(); setRoom(state.room); }
 window.nachrichtenraumGoNextRoom = goNextRoom;
 window.nachrichtenraumStayInRoom = stayInRoom;
 window.nachrichtenraumCloseCardFromHit = (intersection, controller) => { const slot = intersection?.object?.userData?.slot; if (slot?.active) closeCard(slot); };
