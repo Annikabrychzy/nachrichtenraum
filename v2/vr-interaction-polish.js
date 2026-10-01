@@ -39,9 +39,18 @@ for (const controller of [left, right]) {
   controller?.addEventListener("triggerdown", (event) => {
     if (!exitRoot?.getAttribute("visible")) return;
     const action = actionFor(controller);
-    if (!action) return;
+    if (action) {
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      useExit(action);
+    }
+  }, true);
+  controller?.addEventListener("triggerdown", (event) => {
+    if (exitRoot?.getAttribute("visible")) return;
+    const hit = controller.components?.raycaster?.intersections?.[0];
+    if (!hit?.object?.userData?.slot) return;
     event.preventDefault();
     event.stopImmediatePropagation();
-    useExit(action);
+    window.nachrichtenraumCloseCardFromHit?.(hit, controller);
   }, true);
 }
