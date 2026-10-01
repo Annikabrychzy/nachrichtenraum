@@ -19,9 +19,10 @@
             <a-entity id="vr-hud" visible="false">
               <a-plane position="-0.66 0.46 -1.7" width="0.7" height="0.11" material="color: #061226; shader: flat; transparent: true; opacity: 0.72; depthTest: false"></a-plane>
               <a-text id="vr-phase" value="BEREIT" position="-1.00 0.46 -1.695" width="1.24" color="#d9e7ff" align="left" baseline="center" material="depthTest: false"></a-text>
+              <a-text id="vr-tw" value="TW · VIELE REIZE" position="-1.00 0.70 -1.695" width="1.08" color="#facc15" align="left" baseline="center" material="depthTest: false"></a-text>
               <a-entity id="exit-root" visible="false" position="0 0.06 -1.65">
-                <a-plane width="1.12" height="0.32" material="color: #ffffff; shader: flat; transparent: true; opacity: 0.98; depthTest: false; depthWrite: false"></a-plane>
-                <a-text value="NÄCHSTER RAUM?" position="0 0.09 0.018" width="1.2" color="#111827" align="center" baseline="center" material="depthTest: false; depthWrite: false"></a-text>
+                <a-plane width="1.12" height="0.32" material="color: #07070a; shader: flat; transparent: true; opacity: 0.98; depthTest: false; depthWrite: false"></a-plane>
+                <a-text value="MÖCHTEN SIE DIESEN RAUM VERLASSEN?" position="0 0.09 0.018" width="1.2" color="#ffffff" align="center" baseline="center" material="depthTest: false; depthWrite: false"></a-text>
                 <a-plane id="vr-exit-yes" class="interactive" position="-0.21 -0.064 0.025" width="0.36" height="0.13" material="color: #16a34a; shader: flat; opacity: 1; depthTest: false; depthWrite: false"><a-text value="JA" position="0 0 0.014" width="0.9" color="#ffffff" align="center" baseline="center" material="depthTest: false; depthWrite: false"></a-text></a-plane>
                 <a-plane id="vr-exit-no" class="interactive" position="0.21 -0.064 0.025" width="0.36" height="0.13" material="color: #dc2626; shader: flat; opacity: 1; depthTest: false; depthWrite: false"><a-text value="NEIN" position="0 0 0.014" width="0.9" color="#ffffff" align="center" baseline="center" material="depthTest: false; depthWrite: false"></a-text></a-plane>
               </a-entity>
@@ -40,7 +41,7 @@
       <section id="start-screen" aria-labelledby="title"><div class="start-panel"><div class="version">ANNIKA BRYCHZY · DIGITALER RAUM</div><h1 id="title">Nachrichtenraum 1</h1><p class="intro">Politikraum · Meme Raum · Handyraum · Overload Raum</p><div class="actions"><button id="vr-button" class="primary" type="button" disabled>IN VR STARTEN</button><button id="browser-button" type="button" disabled>IM BROWSER STARTEN</button><button id="install-button" type="button" hidden>INSTALLIEREN</button></div><dl class="controls"><div><dt>Linker Stick</dt><dd>bewegen</dd></div><div><dt>Rechter Stick</dt><dd>30° drehen</dd></div><div><dt>Trigger</dt><dd>Karte schließen</dd></div><div><dt>Anzielen</dt><dd>Karte bleibt stehen</dd></div></dl></div></section>
       <section id="hud" aria-live="polite"><div><span id="phase-label">BEREIT</span><span id="timer">00:00</span></div><div><span id="message-count">0 NEWS</span><span id="feed-status">RSS WIRD GELADEN</span></div></section>
       <button id="pause-all" type="button">ALLE ANHALTEN</button>
-      <section id="exit-overlay" class="exit-overlay" hidden><div class="exit-panel"><p>Nächster Raum?</p><div><button id="exit-yes" type="button">Ja</button><button id="exit-no" type="button">Nein</button></div></div></section>
+      <section id="exit-overlay" class="exit-overlay" hidden><div class="exit-panel"><p>Möchten Sie diesen Raum verlassen?</p><div><button id="exit-yes" type="button">Ja</button><button id="exit-no" type="button">Nein</button></div></div></section>
       <section id="rest-note" hidden><p>Pause</p><span>Nicht jede Ablenkung ist Erholung.</span></section>
       <div id="desktop-help">KLICK/TRIGGER: SCHLIESSEN · ANZIELEN: LESEN · WASD: BEWEGEN</div><div id="toast" role="status" aria-live="polite"></div><div class="tw-warning">TW · sensible Themen · viele Reize</div><div class="project-left">digitaler raum</div><div class="project-right">Annika Brychzy</div>
     </main>
