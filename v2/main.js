@@ -73,6 +73,7 @@ function goNextRoom() { hideExitPrompt(); if (state.room === "overload") setRoom
 function stayInRoom() { hideExitPrompt(); setRoom(state.room); }
 window.nachrichtenraumGoNextRoom = goNextRoom;
 window.nachrichtenraumStayInRoom = stayInRoom;
+window.nachrichtenraumCloseCardFromHit = (intersection, controller) => { const slot = intersection?.object?.userData?.slot; if (slot?.active) closeCard(slot); };
 function buildVrExitPrompt() { if (!exitRoot) return; exitRoot.dataset.ready = "true"; }
 function showVrExitPrompt() { buildVrExitPrompt(); if (exitRoot) exitRoot.setAttribute("visible", true); }
 async function init() { const loaded = await loadMessages(); messages = loaded.messages; feedStatus.textContent = loaded.rssCount ? `${loaded.rssCount} RSS-MELDUNGEN` : "RSS-FALLBACK"; cards = new CardPool({ THREE, root: cardsRoot, max: 340, onToggle: toggleCard, onClose: closeCard }); cardsRoot.object3D.visible = false; buildVrExitPrompt(); browserButton.disabled = false; vrButton.disabled = !navigator.xr; }
