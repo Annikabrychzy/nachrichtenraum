@@ -31,7 +31,8 @@ function handleVrExitTrigger(event) {
   if (!exitPromptVisible()) return;
   const controller = event.currentTarget;
   const hit = controller.components?.raycaster?.intersections?.[0];
-  const action = exitActionFromObject(hit?.object);
+  const aimedAction = exitActionFromObject(hit?.object);
+  const action = aimedAction || (controller.id === "left-controller" ? "no" : controller.id === "right-controller" ? "yes" : "");
   if (!action) return;
   event.preventDefault?.();
   event.stopImmediatePropagation?.();
