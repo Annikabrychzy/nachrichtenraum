@@ -6,6 +6,9 @@ const no = document.querySelector("#vr-exit-no");
 const pauseButton = document.querySelector("#pause-all");
 const vrPauseButton = document.querySelector("#vr-pause-button");
 
+const style = document.createElement("style");
+style.textContent = "#pause-all { display: none !important; }";
+document.head.appendChild(style);
 pauseButton?.classList.remove("is-visible");
 if (vrPauseButton) vrPauseButton.setAttribute("visible", false);
 
