@@ -17,9 +17,9 @@
         <a-entity id="rig">
           <a-camera id="viewer" position="0 1.62 0" look-controls="pointerLockEnabled: false; magicWindowTrackingEnabled: true" wasd-controls="acceleration: 16">
             <a-entity id="vr-hud" visible="false">
-              <a-plane position="-0.72 0.64 -1.4" width="0.7" height="0.11" material="color: #061226; shader: flat; transparent: true; opacity: 0.72; depthTest: false"></a-plane>
-              <a-text id="vr-phase" value="BEREIT" position="-1.06 0.64 -1.395" width="1.24" color="#d9e7ff" align="left" baseline="center" material="depthTest: false"></a-text>
-              <a-entity id="exit-root" visible="false" position="0 0.25 -0.72">
+              <a-plane position="-0.66 0.46 -1.7" width="0.7" height="0.11" material="color: #061226; shader: flat; transparent: true; opacity: 0.72; depthTest: false"></a-plane>
+              <a-text id="vr-phase" value="BEREIT" position="-1.00 0.46 -1.695" width="1.24" color="#d9e7ff" align="left" baseline="center" material="depthTest: false"></a-text>
+              <a-entity id="exit-root" visible="false" position="0 0.06 -1.65">
                 <a-plane width="1.12" height="0.32" material="color: #061226; shader: flat; transparent: true; opacity: 0.99; depthTest: false; depthWrite: false"></a-plane>
                 <a-text value="Nächster Raum?" position="0 0.09 0.018" width="1.2" color="#ffffff" align="center" baseline="center" material="depthTest: false; depthWrite: false"></a-text>
                 <a-plane id="vr-exit-yes" class="interactive" position="-0.21 -0.064 0.025" width="0.36" height="0.13" material="color: #16a34a; shader: flat; opacity: 1; depthTest: false; depthWrite: false"><a-text value="JA" position="0 0 0.014" width="0.9" color="#ffffff" align="center" baseline="center" material="depthTest: false; depthWrite: false"></a-text></a-plane>
@@ -45,8 +45,10 @@
       <div id="desktop-help">KLICK/TRIGGER: SCHLIESSEN · ANZIELEN: LESEN · WASD: BEWEGEN</div><div id="toast" role="status" aria-live="polite"></div><div class="tw-warning">TW · sensible Themen · viele Reize</div><div class="project-left">digitaler raum</div><div class="project-right">Annika Brychzy</div>
     </main>
     <script type="module" src="./vr-hud-fix.js?v=3"></script>
-    <script type="module" src="./exit-patch.js?v=3"></script>
+    <script type="module" src="./exit-patch.js?v=4"></script>
+    <script type="module" src="./card-flow-patch.js?v=1"></script>
     <script type="module" src="./main.js?v=rooms-16"></script>
     <script type="module" src="./room-bg.js?v=neon-room-8"></script>
+    <script type="module" src="./aurora-room.js?v=1"></script>
   </body>
 </html>
