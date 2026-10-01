@@ -22,9 +22,9 @@
               <a-text id="vr-tw" value="TW · VIELE REIZE" position="-1.00 0.70 -1.695" width="1.08" color="#facc15" align="left" baseline="center" material="depthTest: false"></a-text>
               <a-entity id="exit-root" visible="false" position="0 0.06 -1.65">
                 <a-plane width="1.12" height="0.32" material="color: #07070a; shader: flat; transparent: true; opacity: 0.98; depthTest: false; depthWrite: false"></a-plane>
-                <a-text value="MÖCHTEN SIE DIESEN RAUM VERLASSEN?" position="0 0.09 0.018" width="1.2" color="#ffffff" align="center" baseline="center" material="depthTest: false; depthWrite: false"></a-text>
-                <a-plane id="vr-exit-yes" class="interactive" position="-0.21 -0.064 0.025" width="0.36" height="0.13" material="color: #16a34a; shader: flat; opacity: 1; depthTest: false; depthWrite: false"><a-text value="JA" position="0 0 0.014" width="0.9" color="#ffffff" align="center" baseline="center" material="depthTest: false; depthWrite: false"></a-text></a-plane>
-                <a-plane id="vr-exit-no" class="interactive" position="0.21 -0.064 0.025" width="0.36" height="0.13" material="color: #dc2626; shader: flat; opacity: 1; depthTest: false; depthWrite: false"><a-text value="NEIN" position="0 0 0.014" width="0.9" color="#ffffff" align="center" baseline="center" material="depthTest: false; depthWrite: false"></a-text></a-plane>
+                <a-text id="vr-exit-question" value="MÖCHTEN SIE DIESEN RAUM VERLASSEN?" position="0 0.09 0.018" width="1.2" color="#ffffff" align="center" baseline="center" material="depthTest: false; depthWrite: false"></a-text>
+                <a-plane id="vr-exit-yes" class="interactive" position="0.21 -0.064 0.025" width="0.36" height="0.13" material="color: #16a34a; shader: flat; opacity: 1; depthTest: false; depthWrite: false"><a-text id="vr-exit-yes-label" value="JA" position="0 0 0.014" width="0.9" color="#ffffff" align="center" baseline="center" material="depthTest: false; depthWrite: false"></a-text></a-plane>
+                <a-plane id="vr-exit-no" class="interactive" position="-0.21 -0.064 0.025" width="0.36" height="0.13" material="color: #dc2626; shader: flat; opacity: 1; depthTest: false; depthWrite: false"><a-text id="vr-exit-no-label" value="NEIN" position="0 0 0.014" width="0.9" color="#ffffff" align="center" baseline="center" material="depthTest: false; depthWrite: false"></a-text></a-plane>
               </a-entity>
               <a-plane id="vr-pause-button" position="0 -0.52 -1.25" width="0.64" height="0.13" material="color: #0a1b35; shader: flat; opacity: 0.92; depthTest: false"><a-text id="vr-pause-label" value="ALLE ANHALTEN" position="0 0 0.006" width="0.78" color="#ffffff" align="center" baseline="center" material="depthTest: false"></a-text></a-plane>
               <a-text id="vr-help" value="" position="0 -0.72 -1.5" width="1.35" color="#7084a8" align="center" baseline="center" material="depthTest: false"></a-text>
@@ -49,7 +49,7 @@
     <script type="module" src="./exit-patch.js?v=4"></script>
     <script type="module" src="./card-flow-patch.js?v=1"></script>
     <script type="module" src="./vr-interaction-polish.js?v=3"></script>
-    <script type="module" src="./main.js?v=rooms-18"></script>
+    <script type="module" src="./main.js?v=rooms-19"></script>
     <script type="module" src="./room-bg.js?v=rooms-visual-10"></script>
     <script type="module" src="./aurora-room.js?v=2"></script>
     <script type="module" src="./sky-background.js?v=1"></script>
