@@ -31,10 +31,11 @@ function handleVrExitTrigger(event) {
   if (!exitPromptVisible()) return;
   const controller = event.currentTarget;
   const hit = controller.components?.raycaster?.intersections?.[0];
-  const action = exitActionFromObject(hit?.object) || "yes";
+  const action = exitActionFromObject(hit?.object);
+  if (!action) return;
   event.preventDefault?.();
   event.stopImmediatePropagation?.();
-  runExitAction(action === "no" ? "no" : "yes");
+  runExitAction(action);
 }
 
 function bindButton(selector, action) {
